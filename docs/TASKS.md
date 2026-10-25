@@ -16,10 +16,10 @@ Do phases in order. Do not start a phase until the previous one is green (`npm r
 **Done when:** the simulation passes and `getTurnPlan` / `playCard` / `passTurn` / `startNextRound` behave exactly as RULES.md describes.
 
 ## Phase 2: Server (`apps/server`)  Agent: Codex
-- [ ] Colyseus `GameRoom`, 5-character join codes, 4 seats, host `start`
-- [ ] Orchestration loop with auto-play, auto-pass, timeout, round and game transitions
-- [ ] Per-client `view` and `event` messages, zod validation, reconnect window, bot takeover
-- [ ] Integration test: 4 test clients play 7 full rounds; each client only ever receives its own hand
+- [x] Colyseus `GameRoom`, 5-character join codes, 4 seats, host `start`
+- [x] Orchestration loop with auto-play, auto-pass, timeout, round and game transitions
+- [x] Per-client `view` and `event` messages, zod validation, reconnect window, bot takeover
+- [x] Integration test: 4 test clients play 7 full rounds; each client only ever receives its own hand
 **Done when:** the integration test passes and a manual run with 4 browser-less clients finishes a game.
 
 ## Phase 3: Thin client (`apps/web`)  Agent: Antigravity
