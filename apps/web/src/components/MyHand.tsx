@@ -114,7 +114,7 @@ export function MyHand({ hand, legalCards, isMyChoice, onPlayCard }: MyHandProps
                 return (
                   <div
                     key={id}
-                    className="absolute top-0 transition-transform"
+                    className="absolute top-0 "
                     style={{
                       left: `${leftOffset}px`,
                       zIndex: isPlayable ? 50 : cardIndex + 1,

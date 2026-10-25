@@ -37,6 +37,7 @@ Do phases in order. Do not start a phase until the previous one is green (`npm r
 - [x] SuitTable tile layout with recent-card highlight
 - [x] Screen wake lock and visibilitychange reconnection handling
 - [x] Rasterized face and back art to size-bounded WebP assets; CSS-only opponent mini backs
+- [x] Obsidian Gold theme with emblem watermark and favicon (replace `apps/web/src/assets/brand/emblem.svg` and `apps/web/public/favicon.svg` when new branding is supplied)
 
 ## Phase 4b: Animations  Agent: Antigravity
 - [ ] Card play and deal animations, transitions, sound toggle (optional)

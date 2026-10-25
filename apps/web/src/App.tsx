@@ -7,6 +7,7 @@ import { LobbyScreen } from "./components/LobbyScreen";
 import { RoundSummaryScreen } from "./components/RoundSummaryScreen";
 import { TableScreen } from "./components/TableScreen";
 import { ToastContainer } from "./components/ToastContainer";
+import { Watermark } from "./components/Watermark";
 import {
   ErrorMessage,
   LobbyMessage,
@@ -146,8 +147,9 @@ export function App() {
   const screen = getScreenName(state);
 
   return (
-    <div className="min-h-[100dvh] bg-zinc-200 flex justify-center text-zinc-900 font-sans antialiased">
-      <div className="w-full max-w-[480px] min-h-[100dvh] bg-white relative flex flex-col shadow-2xl overflow-hidden">
+    <div className="app-shell min-h-[100dvh] flex justify-center antialiased overflow-x-hidden">
+      <Watermark />
+      <div className="app-content w-full max-w-[480px] min-h-[100dvh] relative flex flex-col overflow-hidden">
         <ConnectionBanner
           status={state.connectionStatus}
           message={state.connectionMessage}

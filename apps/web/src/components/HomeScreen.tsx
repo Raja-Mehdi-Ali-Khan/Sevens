@@ -63,25 +63,25 @@ export function HomeScreen({
   };
 
   return (
-    <div className="min-h-[100dvh] bg-zinc-100 flex flex-col justify-center p-4 safe-area-pt safe-area-pb safe-area-pl safe-area-pr">
-      <div className="max-w-[480px] w-full mx-auto bg-white rounded-2xl shadow-sm border border-zinc-200 p-6 space-y-6">
+    <div className="min-h-[100dvh] bg-transparent flex flex-col justify-center p-4 safe-area-pt safe-area-pb safe-area-pl safe-area-pr">
+      <div className="theme-panel max-w-[480px] w-full mx-auto rounded-2xl p-6 space-y-6">
         <div className="text-center space-y-1">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-blue-50 text-blue-600 text-2xl font-bold mb-1 shadow-2xs">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-[var(--acc2)] text-[var(--acc2t)] text-2xl font-bold mb-1">
             7
           </div>
-          <h1 className="text-3xl font-extrabold text-zinc-900 tracking-tight">Sevens</h1>
-          <p className="text-sm text-zinc-500">4-player online card game</p>
+          <h1 className="text-3xl font-extrabold text-[var(--tx)] tracking-tight">Sevens</h1>
+          <p className="text-sm text-[var(--mut)]">4-player online card game</p>
         </div>
 
         {(error || validationError) && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
+          <div className="theme-panel text-[var(--rt)] px-4 py-3 rounded-xl text-sm">
             {error || validationError}
           </div>
         )}
 
         <div className="space-y-4">
           <div>
-            <label htmlFor="name-input" className="block text-sm font-semibold text-zinc-700 mb-1.5">
+            <label htmlFor="name-input" className="block text-sm font-semibold text-[var(--tx)] mb-1.5">
               Your Name
             </label>
             <input
@@ -92,9 +92,9 @@ export function HomeScreen({
               placeholder="e.g. Alice"
               maxLength={20}
               disabled={loading}
-              className="w-full min-h-[44px] px-3.5 py-2.5 border border-zinc-300 rounded-xl text-base text-zinc-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 touch-manipulation"
+              className="theme-input w-full min-h-[44px] px-3.5 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-[var(--acc)] disabled:opacity-50 touch-manipulation"
             />
-            <p className="text-xs text-zinc-400 mt-1">1 to 20 characters</p>
+            <p className="text-xs text-[var(--mut)] mt-1">1 to 20 characters</p>
           </div>
 
           <div className="pt-1">
@@ -102,23 +102,23 @@ export function HomeScreen({
               type="button"
               onClick={handleCreate}
               disabled={!isNameValid || loading}
-              className="w-full min-h-[48px] bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-semibold py-3 px-4 rounded-xl text-base shadow-xs transition-colors cursor-pointer disabled:cursor-not-allowed touch-manipulation flex items-center justify-center"
+              className="theme-button-primary w-full min-h-[48px] disabled:opacity-50 py-3 px-4 text-base cursor-pointer disabled:cursor-not-allowed touch-manipulation flex items-center justify-center"
             >
               {loading ? "Creating..." : "Create Room"}
             </button>
           </div>
 
           <div className="relative flex py-2 items-center">
-            <div className="flex-grow border-t border-zinc-200"></div>
-            <span className="flex-shrink mx-4 text-xs uppercase tracking-wider text-zinc-400 font-semibold">
+            <div className="flex-grow border-t border-[var(--edge)]"></div>
+            <span className="flex-shrink mx-4 text-xs uppercase tracking-wider text-[var(--mut)] font-semibold">
               Or join with code
             </span>
-            <div className="flex-grow border-t border-zinc-200"></div>
+            <div className="flex-grow border-t border-[var(--edge)]"></div>
           </div>
 
           <form onSubmit={handleJoin} className="space-y-3">
             <div>
-              <label htmlFor="code-input" className="block text-sm font-semibold text-zinc-700 mb-1.5">
+              <label htmlFor="code-input" className="block text-sm font-semibold text-[var(--tx)] mb-1.5">
                 Room Code
               </label>
               <input
@@ -133,13 +133,13 @@ export function HomeScreen({
                 autoCorrect="off"
                 spellCheck={false}
                 disabled={loading}
-                className="w-full min-h-[44px] px-3.5 py-2.5 border border-zinc-300 rounded-xl text-base font-mono tracking-widest uppercase text-zinc-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 touch-manipulation"
+                className="theme-input w-full min-h-[44px] px-3.5 py-2.5 tracking-widest uppercase focus:outline-none focus:ring-2 focus:ring-[var(--acc)] disabled:opacity-50 touch-manipulation"
               />
             </div>
             <button
               type="submit"
               disabled={!isNameValid || !isCodeValid || loading}
-              className="w-full min-h-[48px] bg-zinc-800 hover:bg-zinc-900 disabled:opacity-50 text-white font-semibold py-3 px-4 rounded-xl text-base shadow-xs transition-colors cursor-pointer disabled:cursor-not-allowed touch-manipulation flex items-center justify-center"
+              className="theme-button-secondary w-full min-h-[48px] disabled:opacity-50 py-3 px-4 text-base cursor-pointer disabled:cursor-not-allowed touch-manipulation flex items-center justify-center"
             >
               {loading ? "Joining..." : "Join Room"}
             </button>

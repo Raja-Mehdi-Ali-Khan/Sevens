@@ -76,16 +76,16 @@ export function TableScreen({
   const allSeats: Seat[] = [0, 1, 2, 3];
 
   return (
-    <div className="h-[100dvh] max-h-[100dvh] bg-zinc-100 flex flex-col justify-between overflow-hidden safe-top safe-bottom p-2 select-none">
+    <div className="h-[100dvh] max-h-[100dvh] bg-transparent flex flex-col justify-between overflow-hidden safe-top safe-bottom p-2 select-none">
       {/* (a) Compact Header */}
-      <header className="relative bg-white border border-zinc-200 rounded-xl px-2.5 py-1.5 shadow-2xs z-30 shrink-0">
+      <header className="theme-panel relative rounded-xl px-2.5 py-1.5 z-30 shrink-0">
         <div className="flex items-center justify-between gap-1">
           {/* Round Indicator */}
           <div className="flex items-center gap-1.5">
-            <span className="text-xs sm:text-sm font-bold text-zinc-900 leading-none">
-              Round {view.round}/7
+            <span className="text-[15px] uppercase tracking-[3px] font-bold text-[var(--tx)] leading-none">
+              ROUND {view.round} / 7
             </span>
-            <span className="text-[10px] bg-zinc-100 border border-zinc-300 px-1.5 py-0.5 rounded font-mono font-medium text-zinc-600 leading-none">
+            <span className="text-[10px] bg-transparent border border-[var(--edge)] px-1.5 py-0.5 rounded  font-medium text-[var(--mut)] leading-none">
               {lobby?.code ?? ""}
             </span>
           </div>
@@ -95,17 +95,17 @@ export function TableScreen({
             type="button"
             onClick={() => setScoresExpanded((prev) => !prev)}
             aria-expanded={scoresExpanded}
-            className="flex items-center gap-1 bg-blue-50 border border-blue-200 hover:bg-blue-100 text-blue-900 px-2 py-1 rounded-lg text-xs font-semibold cursor-pointer touch-manipulation min-h-[36px] transition-colors"
+            className="theme-score-pill flex items-center gap-1 cursor-pointer touch-manipulation"
           >
             <span>You: {myTotal} pts</span>
-            <span className="text-[10px] font-mono">{scoresExpanded ? "▲" : "▼"}</span>
+            <span className="text-[10px] ">{scoresExpanded ? "▲" : "▼"}</span>
           </button>
 
           {/* Leave Button */}
           <button
             type="button"
             onClick={onLeaveRoom}
-            className="min-h-[44px] min-w-[44px] -mr-1 flex items-center justify-center text-xs text-zinc-400 hover:text-red-600 transition-colors cursor-pointer touch-manipulation"
+            className="theme-button-secondary min-h-[44px] min-w-[44px] -mr-1 p-0 flex items-center justify-center text-xs cursor-pointer touch-manipulation"
             aria-label="Leave room"
           >
             Leave
@@ -114,7 +114,7 @@ export function TableScreen({
 
         {/* Inline Expanded Scores Panel */}
         {scoresExpanded && (
-          <div className="mt-2 pt-2 border-t border-zinc-100 grid grid-cols-2 gap-1.5 text-xs">
+          <div className="mt-2 pt-2 border-t border-[var(--edge)] grid grid-cols-2 gap-1.5 text-xs">
             {allSeats.map((seat) => {
               const name = getPlayerName(seat);
               const isLocal = seat === mySeat;
@@ -123,11 +123,11 @@ export function TableScreen({
                 <div
                   key={seat}
                   className={`p-1.5 rounded flex items-center justify-between ${
-                    isLocal ? "bg-blue-100/70 font-bold text-blue-950" : "bg-zinc-50 text-zinc-700"
+                    isLocal ? "theme-turn font-bold text-[var(--tx)]" : "theme-panel-soft text-[var(--tx)]"
                   }`}
                 >
                   <span className="truncate max-w-[90px]">{name}</span>
-                  <span className="font-mono">{total} pts</span>
+                  <span className="">{total} pts</span>
                 </div>
               );
             })}
@@ -163,12 +163,12 @@ export function TableScreen({
       {/* (d) Status Line (just above hand) */}
       <div className="text-center py-0.5 shrink-0">
         <div
-          className={`inline-block px-3 py-1 rounded-full text-xs font-semibold shadow-2xs leading-tight transition-all ${
+          className={`inline-block rounded-full px-3 py-1 text-base font-bold text-center leading-tight ${
             isMyChoice
-              ? "bg-blue-600 text-white shadow-blue-400/30"
+              ? "theme-panel text-[var(--acc)]"
               : view.turnPlan === "auto_play" || view.turnPlan === "auto_pass"
-              ? "bg-amber-100 text-amber-900 border border-amber-300"
-              : "bg-white text-zinc-700 border border-zinc-200"
+              ? "theme-panel text-[var(--acc)]"
+              : "theme-panel text-[var(--acc)]"
           }`}
         >
           {getStatusLine()}

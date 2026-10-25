@@ -13,7 +13,7 @@ export function ToastContainer({ toasts, onDismiss }: ToastContainerProps) {
       {toasts.map((toast) => (
         <div
           key={toast.id}
-          className="bg-zinc-900/95 text-white px-3 py-2 rounded-lg shadow-lg border border-zinc-700 pointer-events-auto flex items-center justify-between gap-2"
+          className="theme-toast px-3 py-2 rounded-lg shadow-lg pointer-events-auto flex items-center justify-between gap-2"
         >
           <span className="text-xs leading-snug line-clamp-2 flex-1">
             {toast.message}
@@ -21,7 +21,7 @@ export function ToastContainer({ toasts, onDismiss }: ToastContainerProps) {
           <button
             type="button"
             onClick={() => onDismiss(toast.id)}
-            className="shrink-0 w-7 h-7 flex items-center justify-center text-zinc-400 hover:text-white text-base font-bold touch-manipulation cursor-pointer"
+            className="shrink-0 w-11 h-11 flex items-center justify-center text-[var(--mut)] hover:text-[var(--tx)] text-base font-bold touch-manipulation cursor-pointer"
             aria-label="Dismiss toast"
           >
             &times;

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none" stroke="#d4af37" stroke-width="1.2">
+<path d="M100 8 L192 100 L100 192 L8 100 Z"/>
+<path d="M100 24 L176 100 L100 176 L24 100 Z"/>
+<text x="100" y="130" text-anchor="middle" font-family="Georgia,serif" font-size="96" font-weight="700" fill="#d4af37" stroke="none">7</text>
+<text x="100" y="50" text-anchor="middle" font-size="18" fill="#d4af37" stroke="none">&#x2660;&#xFE0E;</text>
+<text x="100" y="164" text-anchor="middle" font-size="18" fill="#d4af37" stroke="none">&#x2665;&#xFE0E;</text>
+<text x="46" y="107" text-anchor="middle" font-size="18" fill="#d4af37" stroke="none">&#x2663;&#xFE0E;</text>
+<text x="154" y="107" text-anchor="middle" font-size="18" fill="#d4af37" stroke="none">&#x2666;&#xFE0E;</text>
+</svg>

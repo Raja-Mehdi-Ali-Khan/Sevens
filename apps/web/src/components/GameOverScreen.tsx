@@ -24,28 +24,28 @@ export function GameOverScreen({
   const rankedSeats = [...seats].sort((a, b) => (view.totals[a] ?? 0) - (view.totals[b] ?? 0));
 
   return (
-    <div className="min-h-[100dvh] bg-zinc-100 flex flex-col items-center justify-center p-4 overflow-y-auto safe-top safe-bottom select-none">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-xl border border-zinc-200 p-5 sm:p-7 space-y-5 my-auto">
+    <div className="min-h-[100dvh] bg-transparent flex flex-col items-center justify-center p-4 overflow-y-auto safe-top safe-bottom select-none">
+      <div className="theme-panel max-w-md w-full rounded-2xl p-5 sm:p-7 space-y-5 my-auto">
         <div className="text-center space-y-1.5">
-          <span className="text-[11px] font-bold uppercase tracking-widest text-amber-700 bg-amber-50 px-3 py-1 rounded-full border border-amber-200 inline-block">
+          <span className="theme-badge uppercase tracking-widest inline-block">
             Game Over (7 Rounds Complete)
           </span>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-zinc-900">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-[var(--tx)]">
             {winnerNames.length > 1
               ? `Tie: ${winnerNames.join(" & ")} win!`
               : `${winnerNames[0] ?? "Winner"} wins!`}
           </h1>
-          <p className="text-xs text-zinc-500">
+          <p className="text-xs text-[var(--mut)]">
             Lowest cumulative penalty points after 7 rounds wins the match.
           </p>
         </div>
 
         {/* Final Standings */}
         <div className="space-y-2">
-          <div className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
+          <div className="text-[11px] font-semibold uppercase tracking-wider text-[var(--mut)]">
             Final Standings
           </div>
-          <div className="divide-y divide-zinc-100 border border-zinc-200 rounded-xl overflow-hidden">
+          <div className="divide-y divide-[var(--edge)] border border-[var(--edge)] rounded-xl overflow-hidden">
             {rankedSeats.map((seat, index) => {
               const name = getPlayerName(seat);
               const isWinner = winners.includes(seat);
@@ -57,34 +57,34 @@ export function GameOverScreen({
                   key={seat}
                   className={`flex items-center justify-between p-3 text-xs sm:text-sm ${
                     isWinner
-                      ? "bg-amber-50/80 font-bold text-amber-950"
+                      ? "theme-winner-row font-bold"
                       : isLocal
-                      ? "bg-blue-50/30 text-zinc-900"
-                      : "bg-white text-zinc-700"
+                      ? "theme-local-row text-[var(--tx)]"
+                      : "text-[var(--tx)]"
                   }`}
                 >
                   <div className="flex items-center space-x-2">
                     <span
-                      className={`w-5 text-xs font-mono font-bold ${
-                        isWinner ? "text-amber-600" : "text-zinc-400"
+                      className={`w-5 text-xs  font-bold ${
+                        isWinner ? "text-[var(--acc)]" : "text-[var(--mut)]"
                       }`}
                     >
                       #{index + 1}
                     </span>
                     <span className="truncate max-w-[120px]">{name}</span>
                     {isLocal && (
-                      <span className="text-[9px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-bold">
+                      <span className="theme-badge">
                         You
                       </span>
                     )}
                     {isWinner && (
-                      <span className="text-[9px] bg-amber-200 text-amber-900 px-1.5 py-0.5 rounded font-extrabold uppercase">
+                      <span className="theme-badge uppercase">
                         Winner
                       </span>
                     )}
                   </div>
-                  <div className="font-mono font-bold text-right">
-                    {total} <span className="text-[11px] font-normal text-zinc-500">pts</span>
+                  <div className=" font-bold text-right">
+                    {total} <span className="text-[11px] font-normal text-[var(--mut)]">pts</span>
                   </div>
                 </div>
               );
@@ -97,7 +97,7 @@ export function GameOverScreen({
           <button
             type="button"
             onClick={onBackToHome}
-            className="w-full min-h-[48px] bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold py-3 px-4 rounded-xl text-sm shadow-md transition-all touch-manipulation cursor-pointer flex items-center justify-center"
+            className="theme-button-primary w-full min-h-[48px] py-3 px-4 text-sm touch-manipulation cursor-pointer flex items-center justify-center"
           >
             Back to Home
           </button>
