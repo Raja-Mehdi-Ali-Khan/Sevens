@@ -163,9 +163,9 @@ export function TableScreen({
               strokeLinejoin="round"
             >
               {isFullscreen ? (
-                <path d="M11 11 4 4m7 7V6m-7 5h5m4 2 7 7m-7-7v5m7-5h-5m-1-1 7-7m-7 7h5m-5-7v5m-2 2-7 7m7-7v5m-7-5h5" />
+                <path d="M19 5 13 11m0-4v4h4M5 19l6-6m-4 0h4v4" />
               ) : (
-                <path d="M11 11 4 4m0 0h5M4 4v5m9 2 7-7m0 0h-5m5 0v5m-9 2-7 7m0 0v-5m0 5h5m2-7 7 7m0 0h-5m5 0v-5" />
+                <path d="M12 12 19 5m-5 0h5v5M12 12 5 19m0-5v5h5" />
               )}
             </svg>
           </button>
