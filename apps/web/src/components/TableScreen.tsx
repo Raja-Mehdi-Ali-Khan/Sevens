@@ -111,16 +111,14 @@ export function TableScreen({
   return (
     <div ref={tableScreenRef} className="table-screen bg-transparent flex flex-col overflow-hidden select-none">
       {/* (a) Compact Header */}
-      <header className="table-section-fixed theme-panel relative rounded-xl px-2.5 py-1.5 z-30">
-        <div className="flex items-center justify-between gap-1">
+      <header className="table-section-fixed theme-panel relative z-30 rounded-xl px-3 py-2">
+        <div className="flex items-center gap-2">
           {/* Round Indicator */}
-          <div className="flex items-center gap-1.5">
-            <span className="text-[15px] uppercase tracking-[3px] font-bold text-[var(--tx)] leading-none">
-              ROUND {view.round} / 7
-            </span>
-            <span className="text-[10px] bg-transparent border border-[var(--edge)] px-1.5 py-0.5 rounded  font-medium text-[var(--mut)] leading-none">
-              {lobby?.code ?? ""}
-            </span>
+          <div
+            aria-label={`Round ${view.round} of 7`}
+            className="theme-panel-soft flex h-11 shrink-0 items-center justify-center rounded-lg border px-2.5 text-sm font-bold tracking-tight text-[var(--acc)]"
+          >
+            R{view.round}/7
           </div>
 
           {/* Compact Score Strip (tap to expand) */}
@@ -128,9 +126,9 @@ export function TableScreen({
             type="button"
             onClick={() => setScoresExpanded((prev) => !prev)}
             aria-expanded={scoresExpanded}
-            className="theme-score-pill flex items-center gap-1 cursor-pointer touch-manipulation"
+            className="theme-score-pill flex min-w-0 flex-1 items-center justify-center gap-1.5 cursor-pointer touch-manipulation"
           >
-            <span>You: {myTotal} pts</span>
+            <span className="truncate whitespace-nowrap">You: {myTotal} pts</span>
             <span className="text-[10px] ">{scoresExpanded ? "▲" : "▼"}</span>
           </button>
 
@@ -138,7 +136,7 @@ export function TableScreen({
           <button
             type="button"
             onClick={onLeaveRoom}
-            className="theme-button-secondary min-h-[44px] min-w-[44px] -mr-1 p-0 flex items-center justify-center text-xs cursor-pointer touch-manipulation"
+            className="theme-button-secondary flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg px-2 text-xs cursor-pointer touch-manipulation"
             aria-label="Leave room"
           >
             Leave
@@ -147,7 +145,7 @@ export function TableScreen({
           <button
             type="button"
             onClick={() => void toggleFullscreen()}
-            className="theme-button-secondary table-fullscreen-button min-h-[36px] min-w-[36px] p-0 items-center justify-center text-lg cursor-pointer touch-manipulation"
+            className="theme-button-secondary table-fullscreen-button min-h-[44px] min-w-[44px] rounded-lg p-0 items-center justify-center cursor-pointer touch-manipulation"
             aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
             aria-pressed={isFullscreen}
             title={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
