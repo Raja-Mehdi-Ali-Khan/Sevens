@@ -11,7 +11,7 @@ import {
 
 export interface PlayingCardProps {
   cardId: CardId | "back";
-  size: "tile" | "sm" | "md" | "lg";
+  size: "tile" | "table" | "sm" | "md" | "lg";
   state?: "normal" | "playable" | "dimmed";
   isRecent?: boolean;
   className?: string;
@@ -35,6 +35,7 @@ export function PlayingCard({
   // Card size classes
   const sizeClasses = {
     tile: "w-full h-[18px] sm:h-[20px] text-[10px] sm:text-xs",
+    table: "w-[52px] h-[76px] sm:w-[58px] sm:h-[84px] text-xs",
     sm: "w-[32px] h-[46px] min-w-[32px]",
     md: "w-[56px] h-[81px] min-w-[56px]",
     lg: "w-[64px] h-[93px] min-w-[64px]",
@@ -54,7 +55,7 @@ export function PlayingCard({
   // Common wrapper styles
   const baseClasses = `relative select-none touch-manipulation rounded flex items-center justify-center overflow-hidden transition-all ${sizeClasses} ${stateClasses} ${recentClasses} ${className}`;
 
-  // 'tile' mode is drawn with CSS and text for readability in the vertical suit columns
+  // 'tile' mode is drawn with CSS and text for compact mini tiles
   if (size === "tile") {
     if (isBack) {
       const tileContent = (
@@ -115,7 +116,7 @@ export function PlayingCard({
     );
   }
 
-  // 'sm', 'md', 'lg' use SVG card faces (or fallback to CSS if SVG fails)
+  // 'table', 'sm', 'md', 'lg' use SVG card faces (or fallback to CSS if SVG fails)
   const assetUrl = getCardAsset(cardId);
 
   const renderContent = () => {
@@ -126,7 +127,7 @@ export function PlayingCard({
           alt={alt}
           loading="lazy"
           onError={() => setImgError(true)}
-          className="w-full h-full object-contain pointer-events-none drop-shadow-2xs rounded"
+          className="w-full h-full object-contain pointer-events-none drop-shadow-2xs rounded bg-white"
         />
       );
     }
