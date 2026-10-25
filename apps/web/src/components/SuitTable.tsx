@@ -11,7 +11,7 @@ export function SuitTable({ table, recentCardId }: SuitTableProps) {
   return (
     <div className="theme-board w-full max-w-[440px] mx-auto">
       {/* 4 vertical suit columns with tight gaps */}
-      <div className="grid grid-cols-4 gap-0.5 sm:gap-1">
+      <div className="grid grid-cols-4 gap-0">
         {SUITS.map((suit: Suit) => {
           const run = table[suit];
           const isRed = isRedSuit(suit);
@@ -20,7 +20,7 @@ export function SuitTable({ table, recentCardId }: SuitTableProps) {
           return (
             <div
               key={suit}
-              className="flex min-w-0 flex-col items-center rounded-xl p-0.5"
+              className="flex min-w-0 flex-col items-center rounded-xl p-0"
             >
               {/* Suit Header */}
               <div
@@ -41,6 +41,23 @@ export function SuitTable({ table, recentCardId }: SuitTableProps) {
                   const isRecent = recentCardId === id;
                   const isSeven = rank === 7;
                   if (isFilled) {
+                    const isRunEnd = run !== null && (rank === run.low || rank === run.high);
+
+                    if (!isRunEnd) {
+                      return (
+                        <div
+                          key={id}
+                          className={`theme-table-center-card ${isRed ? "theme-table-tile-red" : ""} ${isRecent ? "theme-table-tile-recent" : ""}`}
+                          style={{ gridRow: rank, zIndex: isRecent ? 1000 : 200 + rank }}
+                          aria-label={`${formatRank(rank)} of ${suit}`}
+                          title={`${formatRank(rank)} of ${suit}`}
+                        >
+                          <span>{formatRank(rank)}</span>
+                          <span>{formatSuit(suit)}</span>
+                        </div>
+                      );
+                    }
+
                     return (
                       <PlayingCard
                         key={id}

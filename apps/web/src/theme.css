@@ -265,6 +265,32 @@
   outline-offset: 1px;
 }
 
+.theme-table-center-card {
+  display: flex;
+  width: var(--tile-width, 36px);
+  height: var(--tile-step, 21px);
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  overflow: hidden;
+  border: 1px solid var(--edge);
+  border-radius: 4px;
+  background: var(--face);
+  color: var(--fk);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.theme-table-center-card.theme-table-tile-red {
+  color: var(--rc);
+}
+
+.theme-table-center-card.theme-table-tile-recent {
+  z-index: 1000;
+  outline-width: 2px;
+}
+
 .theme-table-placeholder {
   display: flex;
   width: var(--tile-width, 36px);
