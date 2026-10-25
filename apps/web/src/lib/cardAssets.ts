@@ -28,3 +28,4 @@ export function getAllLoadedCardKeys(): string[] {
     return file.replace(".svg", "");
   });
 }
+

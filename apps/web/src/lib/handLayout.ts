@@ -78,3 +78,4 @@ export function splitHandIntoRows<T>(cards: readonly T[], width: number): T[][] 
   }
   return rows;
 }
+
