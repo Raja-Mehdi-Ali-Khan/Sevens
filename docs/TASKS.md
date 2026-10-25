@@ -41,6 +41,9 @@ Do phases in order. Do not start a phase until the previous one is green (`npm r
 ## Phase 4b: Animations  Agent: Antigravity
 - [ ] Card play and deal animations, transitions, sound toggle (optional)
 
+## Phase 4c: Low-card hint snapshot
+- [x] Engine snapshots low-card playable counts after each seat's own turn; opponent chips display the count only
+
 ## Phase 5: Hardening and deploy  Agent: both
 - [ ] Rate limiting, input limits, error screens, reconnect UX
 - [ ] GitHub Actions: typecheck and test on push

@@ -33,6 +33,7 @@ describe("gameState reducer", () => {
       turnPlan: "await_choice",
       table: { H: null, D: null, C: null, S: null },
       handCounts: [13, 13, 13, 13],
+      playableCounts: [null, null, null, null],
       totals: [0, 0, 0, 0],
       roundScores: null,
       roundWinner: null,

@@ -1,9 +1,11 @@
 import type { Seat } from "@cardgame/engine";
+import { hintLabel } from "../lib/hintLabel";
 
 interface PlayerSeatProps {
   seat: Seat;
   name: string;
   cardCount: number;
+  playableCount: number | null;
   isCurrentTurn: boolean;
   isDisconnected: boolean;
   positionLabel: string;
@@ -13,6 +15,7 @@ export function PlayerSeat({
   seat: _seat,
   name,
   cardCount,
+  playableCount,
   isCurrentTurn,
   isDisconnected,
   positionLabel,
@@ -44,6 +47,18 @@ export function PlayerSeat({
         title={name}
       >
         {name}
+      </div>
+
+      {/* Reserve one line so hints do not change the opponents row height. */}
+      <div className="mt-0.5 h-4 flex items-center justify-end">
+        {playableCount !== null && (
+          <span
+            aria-label={`${playableCount} cards playable as of their last turn`}
+            className="max-w-full truncate whitespace-nowrap rounded bg-amber-100 px-1 text-[9px] font-semibold leading-4 text-amber-900"
+          >
+            {hintLabel(playableCount)}
+          </span>
+        )}
       </div>
 
       {/* Bottom line: Card count and mini stack of card backs */}

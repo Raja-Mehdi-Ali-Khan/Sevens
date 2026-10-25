@@ -146,6 +146,7 @@ export function TableScreen({
               seat={seat}
               name={getPlayerName(seat)}
               cardCount={view.handCounts[seat] ?? 0}
+              playableCount={view.playableCounts[seat] ?? null}
               isCurrentTurn={view.currentSeat === seat}
               isDisconnected={isPlayerDisconnected(seat)}
               positionLabel={positionLabel}

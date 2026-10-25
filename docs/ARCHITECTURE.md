@@ -23,6 +23,7 @@ export type Rng = () => number;                    // returns [0, 1)
 export interface Run { low: Rank; high: Rank }
 export type TableState = Record<Suit, Run | null>;
 export type Phase = 'in_round' | 'round_over' | 'game_over';
+export const LOW_CARD_HINT_THRESHOLD = 3;
 
 export interface GameState {
   totalRounds: 7;

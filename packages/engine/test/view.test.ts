@@ -21,6 +21,22 @@ describe("getPlayerView", () => {
     const view = getPlayerView(state, state.currentSeat);
     expect(view.turnPlan).toBe("waiting");
     expect(view.legalCards).toEqual([]);
+    expect(view.playableCounts).toEqual([null, null, null, null]);
+  });
+
+  it("exposes an identical copied snapshot to every viewer during a round", () => {
+    const state = {
+      ...stateWith(EMPTY_TABLE, [[card("7H")], [card("1S")], [], []]),
+      lowCardHints: [1, 0, null, 3],
+    };
+    const first = getPlayerView(state, 0);
+    const second = getPlayerView(state, 1);
+    expect(first.playableCounts).toEqual([1, 0, null, 3]);
+    expect(second.playableCounts).toEqual(first.playableCounts);
+    expect(first.playableCounts).not.toBe(state.lowCardHints);
+    first.playableCounts[0] = 2;
+    expect(state.lowCardHints[0]).toBe(1);
+    expect(second.playableCounts[0]).toBe(1);
   });
 
   it("copies nested state so callers cannot mutate engine state", () => {

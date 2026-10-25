@@ -25,6 +25,7 @@ export function getPlayerView(state: GameState, seat: Seat): PlayerView {
     turnPlan,
     table: copyTable(state.table),
     handCounts: state.hands.map((hand) => hand.length),
+    playableCounts: state.phase === "in_round" ? [...state.lowCardHints] : [null, null, null, null],
     totals: [...state.totals],
     roundScores: state.roundScores === null ? null : [...state.roundScores],
     roundWinner: state.roundWinner,
