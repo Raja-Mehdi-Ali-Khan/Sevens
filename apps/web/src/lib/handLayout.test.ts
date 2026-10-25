@@ -26,6 +26,21 @@ describe("handLayout", () => {
     expect(layout.minTappableWidth).toBeGreaterThanOrEqual(40);
   });
 
+  it.each([
+    [568, 54],
+    [640, 62],
+    [700, 70],
+    [844, 78],
+  ])("keeps 13-card hands tappable at every width from 320px up (height %i)", (height, defaultCardWidth) => {
+    for (let viewportWidth = 320; viewportWidth <= 480; viewportWidth++) {
+      const containerWidth = viewportWidth - 16;
+      const cardWidth = height > 680 && viewportWidth <= 333 ? 64 : defaultCardWidth;
+      const layout = computeHandLayout(13, containerWidth, cardWidth);
+      expect(layout.rowCount).toBe(2);
+      expect(layout.minTappableWidth, `${viewportWidth}px viewport`).toBeGreaterThanOrEqual(40);
+    }
+  });
+
   it("splits a 13-card hand into 7 and 6 cards across rows", () => {
     const mockCards = Array.from({ length: 13 }, (_, i) => `card-${i + 1}`);
     const rows360 = splitHandIntoRows(mockCards, 360);

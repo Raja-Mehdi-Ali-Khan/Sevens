@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
 import type { CardId } from "@cardgame/engine";
 import { getCardAsset } from "../lib/cardAssets";
 import {
@@ -15,6 +15,7 @@ export interface PlayingCardProps {
   state?: "normal" | "playable" | "dimmed";
   isRecent?: boolean;
   className?: string;
+  style?: CSSProperties;
   onClick?: () => void;
 }
 
@@ -24,6 +25,7 @@ export function PlayingCard({
   state = "normal",
   isRecent = false,
   className = "",
+  style,
   onClick,
 }: PlayingCardProps) {
   const [imgError, setImgError] = useState(false);
@@ -35,10 +37,10 @@ export function PlayingCard({
   // Card size classes
   const sizeClasses = {
     tile: "w-full h-[18px] sm:h-[20px] text-[10px] sm:text-xs",
-    table: "w-[66px] h-[94px] sm:w-[74px] sm:h-[106px] text-xs sm:text-sm",
-    sm: "w-[32px] h-[46px] min-w-[32px]",
-    md: "w-[56px] h-[81px] min-w-[56px]",
-    lg: "w-[64px] h-[93px] min-w-[64px]",
+    table: "table-card-size",
+    sm: "hand-card-size",
+    md: "hand-card-size",
+    lg: "hand-card-size",
   }[size];
 
   // State styling
@@ -70,6 +72,7 @@ export function PlayingCard({
             onClick={onClick}
             disabled={isCardDimmed}
             aria-label={alt}
+            style={style}
             className={`${baseClasses} p-0 border-0 bg-transparent`}
           >
             {tileContent}
@@ -77,7 +80,7 @@ export function PlayingCard({
         );
       }
       return (
-        <div className={baseClasses} aria-label={alt}>
+        <div className={baseClasses} aria-label={alt} style={style}>
           {tileContent}
         </div>
       );
@@ -101,6 +104,7 @@ export function PlayingCard({
           onClick={onClick}
           disabled={isCardDimmed}
           aria-label={alt}
+          style={style}
           className={`${baseClasses} p-0 border-0 bg-transparent`}
         >
           {tileContent}
@@ -108,7 +112,7 @@ export function PlayingCard({
       );
     }
     return (
-      <div className={baseClasses} aria-label={alt}>
+      <div className={baseClasses} aria-label={alt} style={style}>
         {tileContent}
       </div>
     );
@@ -172,6 +176,7 @@ export function PlayingCard({
         onClick={onClick}
         disabled={isCardDimmed}
         aria-label={alt}
+        style={style}
         className={`${baseClasses} p-0 border-0 bg-transparent`}
       >
         {renderContent()}
@@ -180,7 +185,7 @@ export function PlayingCard({
   }
 
   return (
-    <div className={baseClasses} aria-label={alt}>
+    <div className={baseClasses} aria-label={alt} style={style}>
       {renderContent()}
     </div>
   );

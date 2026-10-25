@@ -8,6 +8,7 @@ import { RoundSummaryScreen } from "./components/RoundSummaryScreen";
 import { TableScreen } from "./components/TableScreen";
 import { ToastContainer } from "./components/ToastContainer";
 import { Watermark } from "./components/Watermark";
+import { tablePreviewLobby, tablePreviewView } from "./dev/previewFixtures";
 import {
   ErrorMessage,
   LobbyMessage,
@@ -21,6 +22,27 @@ import {
 } from "./state/gameState";
 
 export function App() {
+  if (import.meta.env.DEV && new URLSearchParams(window.location.search).get("preview") === "table") {
+    return (
+      <div className="app-shell min-h-[100dvh] flex justify-center antialiased overflow-x-hidden">
+        <Watermark />
+        <div className="app-content w-full max-w-[480px] min-h-[100dvh] relative flex flex-col overflow-hidden">
+          <TableScreen
+            view={tablePreviewView}
+            lobby={tablePreviewLobby}
+            recentCardId="8H"
+            onPlayCard={() => {}}
+            onLeaveRoom={() => {}}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  return <ConnectedApp />;
+}
+
+function ConnectedApp() {
   const [state, dispatch] = useReducer(appReducer, initialAppState);
   const [loading, setLoading] = useState(false);
   const lobbyRef = useRef<LobbyMessage | null>(null);
@@ -148,14 +170,20 @@ export function App() {
 
   return (
     <div className="app-shell min-h-[100dvh] flex justify-center antialiased overflow-x-hidden">
-      <Watermark />
-      <div className="app-content w-full max-w-[480px] min-h-[100dvh] relative flex flex-col overflow-hidden">
-        <ConnectionBanner
-          status={state.connectionStatus}
-          message={state.connectionMessage}
-          serverError={state.serverError}
-          onClearError={() => dispatch({ type: "SET_SERVER_ERROR", error: null })}
-        />
+      {screen !== "home" && <Watermark />}
+      <div
+        className={`app-content w-full max-w-[480px] min-h-[100dvh] relative flex flex-col ${
+          screen === "home" ? "overflow-visible" : "overflow-hidden"
+        }`}
+      >
+        {screen !== "home" && (
+          <ConnectionBanner
+            status={state.connectionStatus}
+            message={state.connectionMessage}
+            serverError={state.serverError}
+            onClearError={() => dispatch({ type: "SET_SERVER_ERROR", error: null })}
+          />
+        )}
 
         <ToastContainer
           toasts={state.toasts}

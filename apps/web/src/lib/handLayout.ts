@@ -20,7 +20,7 @@ export const CARD_WIDTHS = {
  * - Every card must have at least 40px of horizontal tappable width.
  * - 'md' card size for narrower phones (< 400px), 'lg' for 400px+.
  */
-export function computeHandLayout(cardCount: number, width: number): HandLayoutResult {
+export function computeHandLayout(cardCount: number, width: number, measuredCardWidth?: number): HandLayoutResult {
   if (cardCount <= 0) {
     return {
       rowCount: 0,
@@ -31,9 +31,8 @@ export function computeHandLayout(cardCount: number, width: number): HandLayoutR
   }
 
   const cardSize: "sm" | "md" | "lg" = width >= 400 ? "lg" : "md";
-  const cardWidth = CARD_WIDTHS[cardSize];
-  const padding = 16; // 8px on each side
-  const availableWidth = Math.max(width - padding, cardWidth);
+  const cardWidth = measuredCardWidth ?? CARD_WIDTHS[cardSize];
+  const availableWidth = Math.max(width, cardWidth);
 
   // If 6 or fewer cards, they fit in a single row comfortably
   if (cardCount <= 6) {
@@ -42,7 +41,7 @@ export function computeHandLayout(cardCount: number, width: number): HandLayoutR
       rowCount: 1,
       rowDistribution: [cardCount],
       cardSize,
-      minTappableWidth: Math.min(cardWidth, Math.max(minStep, cardWidth)),
+      minTappableWidth: Math.min(cardWidth, Math.max(minStep, 0)),
     };
   }
 

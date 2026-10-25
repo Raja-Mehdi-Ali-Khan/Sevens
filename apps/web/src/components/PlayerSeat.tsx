@@ -25,7 +25,7 @@ export function PlayerSeat({
 
   return (
     <div
-      className={`theme-seat flex-1 min-w-0 max-w-[130px] p-2.5 flex flex-col justify-between ${
+      className={`theme-seat flex-1 min-w-0 max-w-[130px] flex flex-col justify-between ${
         isCurrentTurn
           ? "theme-turn"
           : ""
@@ -63,12 +63,12 @@ export function PlayerSeat({
 
       {/* Bottom line: Card count and mini stack of card backs */}
       <div className="flex items-center justify-between mt-0.5">
-        <span className="text-xs font-bold text-[var(--tx)] leading-tight">
+        <span className="text-xs font-bold text-[var(--mut)] leading-tight">
           {cardCount} <span className="text-[10px] font-normal text-[var(--mut)]">{cardCount === 1 ? "cd" : "cds"}</span>
         </span>
 
         {/* Small stack of card backs */}
-        <div className="relative h-5 w-[41px] flex items-center">
+        <div className="table-mini-backs relative h-5 w-[41px] flex items-center">
           {Array.from({ length: stackCount }).map((_, i) => (
             <div
               key={i}

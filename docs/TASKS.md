@@ -45,6 +45,10 @@ Do phases in order. Do not start a phase until the previous one is green (`npm r
 ## Phase 4c: Low-card hint snapshot
 - [x] Engine snapshots low-card playable counts after each seat's own turn; opponent chips display the count only
 
+## Phase 4d: Home redesign + short-phone table layout
+- [x] Table sections use a height-constrained flex layout with an internally scrollable suit board and CSS density steps
+- [x] Home screen supports remembered names, invite-first join flow, pure tested input helpers, and a collapsible rules summary
+
 ## Phase 5: Hardening and deploy  Agent: both
 - [ ] Rate limiting, input limits, error screens, reconnect UX
 - [ ] GitHub Actions: typecheck and test on push

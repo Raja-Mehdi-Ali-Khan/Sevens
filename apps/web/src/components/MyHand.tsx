@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { Card, CardId } from "@cardgame/engine";
-import { CARD_WIDTHS, computeHandLayout, splitHandIntoRows } from "../lib/handLayout";
+import { computeHandLayout, splitHandIntoRows } from "../lib/handLayout";
 import { sortHand } from "../lib/cards";
 import { PlayingCard } from "./PlayingCard";
 
@@ -13,9 +13,11 @@ interface MyHandProps {
 
 export function MyHand({ hand, legalCards, isMyChoice, onPlayCard }: MyHandProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [containerWidth, setContainerWidth] = useState<number>(() =>
-    typeof window !== "undefined" ? Math.min(window.innerWidth, 480) : 360
-  );
+  const [metrics, setMetrics] = useState(() => ({
+    containerWidth: typeof window !== "undefined" ? Math.min(window.innerWidth - 16, 464) : 344,
+    cardWidth: 78,
+    cardHeight: 108,
+  }));
 
   useEffect(() => {
     const el = containerRef.current;
@@ -24,7 +26,14 @@ export function MyHand({ hand, legalCards, isMyChoice, onPlayCard }: MyHandProps
     const updateWidth = () => {
       const w = el.getBoundingClientRect().width;
       if (w > 0) {
-        setContainerWidth(w);
+        const styles = getComputedStyle(el);
+        const cardWidth = Number.parseFloat(styles.getPropertyValue("--hand-card-width")) || 78;
+        const cardHeight = Number.parseFloat(styles.getPropertyValue("--hand-card-height")) || 108;
+        setMetrics((current) =>
+          current.containerWidth === w && current.cardWidth === cardWidth && current.cardHeight === cardHeight
+            ? current
+            : { containerWidth: w, cardWidth, cardHeight }
+        );
       }
     };
 
@@ -34,22 +43,23 @@ export function MyHand({ hand, legalCards, isMyChoice, onPlayCard }: MyHandProps
       updateWidth();
     });
     resizeObserver.observe(el);
+    window.addEventListener("resize", updateWidth);
 
     return () => {
       resizeObserver.disconnect();
+      window.removeEventListener("resize", updateWidth);
     };
   }, []);
 
   const sortedCards = sortHand(hand);
-  const layout = computeHandLayout(sortedCards.length, containerWidth);
-  const rows = splitHandIntoRows(sortedCards, containerWidth);
+  const layout = computeHandLayout(sortedCards.length, metrics.containerWidth, metrics.cardWidth);
+  const rows = splitHandIntoRows(sortedCards, metrics.containerWidth);
 
   const cardSize = layout.cardSize;
-  const cardWidth = CARD_WIDTHS[cardSize];
-  const cardHeight = cardSize === "lg" ? 93 : 81;
+  const cardWidth = metrics.cardWidth;
+  const cardHeight = metrics.cardHeight;
 
-  // Horizontal padding in container: 16px (8px each side)
-  const availableWidth = Math.max(containerWidth - 16, cardWidth);
+  const availableWidth = Math.max(metrics.containerWidth, cardWidth);
 
   return (
     <div ref={containerRef} className="w-full flex flex-col items-center select-none">
@@ -67,7 +77,7 @@ export function MyHand({ hand, legalCards, isMyChoice, onPlayCard }: MyHandProps
               <div
                 key={rowIndex}
                 className={`flex justify-center items-center gap-1 sm:gap-1.5 ${
-                  rowIndex > 0 ? "-mt-8 sm:-mt-10" : ""
+                  rowIndex > 0 ? "hand-row-overlap" : ""
                 } relative z-${rowIndex * 10}`}
               >
                 {rowCards.map((card) => {
@@ -97,7 +107,7 @@ export function MyHand({ hand, legalCards, isMyChoice, onPlayCard }: MyHandProps
             <div
               key={rowIndex}
               className={`relative ${
-                rowIndex > 0 ? "-mt-8 sm:-mt-10" : ""
+                rowIndex > 0 ? "hand-row-overlap" : ""
               }`}
               style={{
                 width: `${totalWidth}px`,

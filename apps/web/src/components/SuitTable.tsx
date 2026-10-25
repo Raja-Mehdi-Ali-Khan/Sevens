@@ -8,9 +8,6 @@ interface SuitTableProps {
 }
 
 export function SuitTable({ table, recentCardId }: SuitTableProps) {
-  // Preserve the existing 372px stacked-card layout across all 13 ranks.
-  const step = 23.17;
-
   return (
     <div className="theme-board w-full max-w-[440px] mx-auto">
       {/* 4 vertical suit columns with tight gaps */}
@@ -35,7 +32,7 @@ export function SuitTable({ table, recentCardId }: SuitTableProps) {
 
               {/* 13-rank tall stacked card area */}
               <div
-                className="relative w-full h-[372px] flex justify-center"
+                className="table-suit-stack relative w-full"
                 aria-label={`Played cards for ${suit}`}
               >
                 {RANKS.map((rank: Rank) => {
@@ -43,24 +40,16 @@ export function SuitTable({ table, recentCardId }: SuitTableProps) {
                   const isFilled = run !== null && rank >= run.low && rank <= run.high;
                   const isRecent = recentCardId === id;
                   const isSeven = rank === 7;
-                  const topOffset = (rank - 1) * step;
-
                   if (isFilled) {
                     return (
-                      <div
+                      <PlayingCard
                         key={id}
-                        className="absolute left-1/2 -translate-x-1/2  "
-                        style={{
-                          top: `${topOffset}px`,
-                          zIndex: isRecent ? 50 : 10 + rank,
-                        }}
-                      >
-                        <PlayingCard
-                          cardId={id}
-                          size="table"
-                          isRecent={isRecent}
-                        />
-                      </div>
+                        cardId={id}
+                        size="table"
+                        isRecent={isRecent}
+                        className="table-board-card"
+                        style={{ gridRow: rank, zIndex: isRecent ? 1000 : 100 + rank }}
+                      />
                     );
                   }
 
@@ -69,10 +58,10 @@ export function SuitTable({ table, recentCardId }: SuitTableProps) {
                     return (
                       <div
                         key={id}
-                        className="theme-open-slot absolute left-1/2 -translate-x-1/2 w-[66px] h-[94px] sm:w-[74px] sm:h-[106px] select-none"
+                        className="theme-open-slot select-none"
                         style={{
-                          top: `${topOffset}px`,
-                          zIndex: 5,
+                          gridRow: rank,
+                          zIndex: 100 + rank,
                         }}
                         aria-label={`Play 7 of ${suit} here to open suit`}
                       >
@@ -88,10 +77,10 @@ export function SuitTable({ table, recentCardId }: SuitTableProps) {
                   return (
                     <div
                       key={id}
-                      className={`theme-table-placeholder absolute left-1/2 -translate-x-1/2 w-[64px] sm:w-[72px] h-[21px] ${isRed ? "theme-table-tile-red" : ""}`}
+                      className={`theme-table-placeholder ${isRed ? "theme-table-tile-red" : ""}`}
                       style={{
-                        top: `${topOffset}px`,
-                        zIndex: 0,
+                        gridRow: rank,
+                        zIndex: rank,
                       }}
                       aria-label={`Unplayed ${formatRank(rank)} of ${suit}`}
                     >

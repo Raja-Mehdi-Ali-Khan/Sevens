@@ -76,9 +76,9 @@ export function TableScreen({
   const allSeats: Seat[] = [0, 1, 2, 3];
 
   return (
-    <div className="h-[100dvh] max-h-[100dvh] bg-transparent flex flex-col justify-between overflow-hidden safe-top safe-bottom p-2 select-none">
+    <div className="table-screen bg-transparent flex flex-col overflow-hidden select-none">
       {/* (a) Compact Header */}
-      <header className="theme-panel relative rounded-xl px-2.5 py-1.5 z-30 shrink-0">
+      <header className="table-section-fixed theme-panel relative rounded-xl px-2.5 py-1.5 z-30">
         <div className="flex items-center justify-between gap-1">
           {/* Round Indicator */}
           <div className="flex items-center gap-1.5">
@@ -136,7 +136,7 @@ export function TableScreen({
       </header>
 
       {/* (b) Opponents Row: ONE row of three compact chips (Left, Across/Top, Right) */}
-      <section className="mt-1 flex items-stretch justify-between gap-1.5 shrink-0 px-0.5">
+      <section className="table-section-fixed table-opponents flex items-stretch justify-between gap-1.5 px-0.5">
         {opponents.map(({ seat, position }) => {
           const positionLabel =
             position === "left" ? "Left (+3)" : position === "top" ? "Across (+2)" : "Right (+1)";
@@ -156,27 +156,19 @@ export function TableScreen({
       </section>
 
       {/* (c) The Suit Table */}
-      <main className="my-auto py-1 flex items-center justify-center min-h-0 shrink">
+      <main className="table-board-region">
         <SuitTable table={view.table} recentCardId={recentCardId} />
       </main>
 
       {/* (d) Status Line (just above hand) */}
-      <div className="text-center py-0.5 shrink-0">
-        <div
-          className={`inline-block rounded-full px-3 py-1 text-base font-bold text-center leading-tight ${
-            isMyChoice
-              ? "theme-panel text-[var(--acc)]"
-              : view.turnPlan === "auto_play" || view.turnPlan === "auto_pass"
-              ? "theme-panel text-[var(--acc)]"
-              : "theme-panel text-[var(--acc)]"
-          }`}
-        >
+      <div className="table-section-fixed table-status text-center">
+        <div className="inline-block rounded-full px-3 py-1 text-base font-bold text-center leading-tight theme-panel text-[var(--acc)]">
           {getStatusLine()}
         </div>
       </div>
 
       {/* (e) My Hand (Bottom Thumb Zone) */}
-      <footer className="shrink-0 pb-1">
+      <footer className="table-hand">
         <MyHand
           hand={view.hand}
           legalCards={view.legalCards}
