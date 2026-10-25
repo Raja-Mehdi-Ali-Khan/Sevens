@@ -15,3 +15,6 @@
 - **Date Copied:** October 25, 2026
 - **Optimization:** Optimized with SVGO v4.1.0.
 
+## Converted WebP assets
+
+The WebP files in this directory are converted derivatives of the public-domain / WTFPL face-card sources and the CC0 card-back source documented above. Regenerate them with the web workspace `art:build` script.

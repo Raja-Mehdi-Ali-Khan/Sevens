@@ -36,6 +36,7 @@ Do phases in order. Do not start a phase until the previous one is green (`npm r
 - [x] Opponents single-row compact chips and inline expandable scores panel
 - [x] SuitTable tile layout with recent-card highlight
 - [x] Screen wake lock and visibilitychange reconnection handling
+- [x] Rasterized face and back art to size-bounded WebP assets; CSS-only opponent mini backs
 
 ## Phase 4b: Animations  Agent: Antigravity
 - [ ] Card play and deal animations, transitions, sound toggle (optional)

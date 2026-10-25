@@ -1,6 +1,6 @@
 import type { CardId } from "@cardgame/engine";
 
-const cardModules = import.meta.glob<string>("../assets/cards/*.svg", {
+const cardModules = import.meta.glob<string>("../assets/cards/*.webp", {
   eager: true,
   query: "?url",
   import: "default",
@@ -10,7 +10,7 @@ const cardModules = import.meta.glob<string>("../assets/cards/*.svg", {
  * Maps a CardId (e.g. "7H", "1S", "13D") or "back" to its resolved Vite asset URL.
  */
 export function getCardAsset(cardId: CardId | "back"): string | undefined {
-  const target = cardId === "back" ? "/back.svg" : `/${cardId}.svg`;
+  const target = cardId === "back" ? "/back.webp" : `/${cardId}.webp`;
   for (const [path, url] of Object.entries(cardModules)) {
     if (path.endsWith(target)) {
       return url;
@@ -25,7 +25,7 @@ export function getCardAsset(cardId: CardId | "back"): string | undefined {
 export function getAllLoadedCardKeys(): string[] {
   return Object.keys(cardModules).map((path) => {
     const file = path.split("/").pop() ?? "";
-    return file.replace(".svg", "");
+    return file.replace(".webp", "");
   });
 }
 

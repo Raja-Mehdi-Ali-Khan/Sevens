@@ -116,7 +116,7 @@ export function PlayingCard({
     );
   }
 
-  // 'table', 'sm', 'md', 'lg' use SVG card faces (or fallback to CSS if SVG fails)
+  // 'table', 'sm', 'md', 'lg' use raster card faces (or CSS if the asset fails)
   const assetUrl = getCardAsset(cardId);
 
   const renderContent = () => {
@@ -125,7 +125,10 @@ export function PlayingCard({
         <img
           src={assetUrl}
           alt={alt}
+          width={167}
+          height={243}
           loading="lazy"
+          decoding="async"
           onError={() => setImgError(true)}
           className="w-full h-full object-contain pointer-events-none drop-shadow-2xs rounded bg-white"
         />

@@ -17,8 +17,8 @@ export function PlayerSeat({
   isDisconnected,
   positionLabel,
 }: PlayerSeatProps) {
-  // Visual mini card stack (1 to 3 mini cards)
-  const stackCount = Math.min(Math.max(cardCount, 0), 3);
+  // Keep the opponent stack small while retaining a visible card-count cue.
+  const stackCount = Math.min(Math.max(cardCount, 0), 5);
 
   return (
     <div
