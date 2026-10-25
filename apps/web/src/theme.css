@@ -351,9 +351,9 @@
 }
 
 .table-screen {
-  --tile-width: 44px;
-  --tile-height: 54px;
-  --tile-step: 18px;
+  --tile-width: 56px;
+  --tile-height: 68px;
+  --tile-step: 16px;
   --hand-card-width: 78px;
   --hand-card-height: 108px;
   --chip-padding: 6px 8px;
@@ -444,9 +444,9 @@
 
 @media (max-height: 760px) {
   .table-screen {
-    --tile-width: 40px;
-    --tile-height: 48px;
-    --tile-step: 16px;
+    --tile-width: 52px;
+    --tile-height: 64px;
+    --tile-step: 14px;
     --hand-card-width: 70px;
     --hand-card-height: 98px;
     --chip-padding: 8px;
@@ -459,9 +459,9 @@
 
 @media (max-height: 680px) {
   .table-screen {
-    --tile-width: 36px;
-    --tile-height: 44px;
-    --tile-step: 14px;
+    --tile-width: 48px;
+    --tile-height: 60px;
+    --tile-step: 12px;
     --hand-card-width: 62px;
     --hand-card-height: 86px;
     --chip-padding: 6px;
@@ -474,8 +474,8 @@
 
 @media (max-height: 600px) {
   .table-screen {
-    --tile-width: 32px;
-    --tile-height: 40px;
+    --tile-width: 44px;
+    --tile-height: 56px;
     --tile-step: 12px;
     --hand-card-width: 54px;
     --hand-card-height: 76px;
@@ -494,6 +494,14 @@
 .table-fullscreen-button {
   display: flex;
   flex: none;
+  align-items: center;
+  justify-content: center;
+}
+
+.table-fullscreen-icon {
+  display: block;
+  width: 22px;
+  height: 22px;
 }
 
 .table-screen:fullscreen {

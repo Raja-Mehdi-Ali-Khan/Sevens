@@ -152,7 +152,22 @@ export function TableScreen({
             aria-pressed={isFullscreen}
             title={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
           >
-            {isFullscreen ? "Exit" : "Full"}
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 24 24"
+              className="table-fullscreen-icon"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              {isFullscreen ? (
+                <path d="M11 11 4 4m7 7V6m-7 5h5m4 2 7 7m-7-7v5m7-5h-5m-1-1 7-7m-7 7h5m-5-7v5m-2 2-7 7m7-7v5m-7-5h5" />
+              ) : (
+                <path d="M11 11 4 4m0 0h5M4 4v5m9 2 7-7m0 0h-5m5 0v5m-9 2-7 7m0 0v-5m0 5h5m2-7 7 7m0 0h-5m5 0v-5" />
+              )}
+            </svg>
           </button>
         </div>
 
