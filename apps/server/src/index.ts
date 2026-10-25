@@ -1,1 +1,6 @@
-console.log("server skeleton");
+import { createAppServer } from "./createServer";
+
+const port = Number(process.env.PORT ?? 2567);
+const server = createAppServer();
+await server.listen(port);
+console.log(`Sevens server listening on port ${port}`);
