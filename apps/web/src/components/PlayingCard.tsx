@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
 import type { CardId } from "@cardgame/engine";
 import { getCardAsset } from "../lib/cardAssets";
 import {
@@ -15,6 +15,7 @@ export interface PlayingCardProps {
   state?: "normal" | "playable" | "dimmed";
   isRecent?: boolean;
   className?: string;
+  style?: CSSProperties;
   onClick?: () => void;
 }
 
@@ -24,6 +25,7 @@ export function PlayingCard({
   state = "normal",
   isRecent = false,
   className = "",
+  style,
   onClick,
 }: PlayingCardProps) {
   const [imgError, setImgError] = useState(false);
@@ -35,32 +37,32 @@ export function PlayingCard({
   // Card size classes
   const sizeClasses = {
     tile: "w-full h-[18px] sm:h-[20px] text-[10px] sm:text-xs",
-    table: "w-[66px] h-[94px] sm:w-[74px] sm:h-[106px] text-xs sm:text-sm",
-    sm: "w-[32px] h-[46px] min-w-[32px]",
-    md: "w-[56px] h-[81px] min-w-[56px]",
-    lg: "w-[64px] h-[93px] min-w-[64px]",
+    table: "table-card-size",
+    sm: "hand-card-size",
+    md: "hand-card-size",
+    lg: "hand-card-size",
   }[size];
 
   // State styling
   const stateClasses = isCardPlayable
-    ? "ring-2 ring-blue-500 dark:ring-blue-400 shadow-md -translate-y-1 z-10 cursor-pointer active:translate-y-0"
+    ? "theme-playable-card z-10 cursor-pointer"
     : isCardDimmed
-    ? "opacity-40 cursor-not-allowed"
+    ? "theme-dimmed-card cursor-not-allowed"
     : "shadow-2xs";
 
-  const recentClasses = isRecent
-    ? "ring-2 ring-amber-400 shadow-sm"
+  const recentClasses = isRecent && size === "table"
+    ? "theme-table-tile-recent"
     : "";
 
   // Common wrapper styles
-  const baseClasses = `relative select-none touch-manipulation rounded flex items-center justify-center overflow-hidden transition-all ${sizeClasses} ${stateClasses} ${recentClasses} ${className}`;
+  const baseClasses = `relative select-none touch-manipulation rounded flex items-center justify-center ${sizeClasses} ${stateClasses} ${recentClasses} ${className}`;
 
   // 'tile' mode is drawn with CSS and text for compact mini tiles
   if (size === "tile") {
     if (isBack) {
       const tileContent = (
-        <div className="w-full h-full bg-blue-800 border border-blue-950 rounded flex items-center justify-center">
-          <div className="w-[80%] h-[80%] border border-blue-400/50 rounded-xs bg-blue-700/60" />
+        <div className="w-full h-full rounded border border-[var(--acc)] bg-[var(--back)] flex items-center justify-center">
+          <div className="w-[80%] h-[80%] border border-[var(--acc)] rounded-xs bg-[var(--chip)]" />
         </div>
       );
       if (onClick) {
@@ -70,6 +72,7 @@ export function PlayingCard({
             onClick={onClick}
             disabled={isCardDimmed}
             aria-label={alt}
+            style={style}
             className={`${baseClasses} p-0 border-0 bg-transparent`}
           >
             {tileContent}
@@ -77,7 +80,7 @@ export function PlayingCard({
         );
       }
       return (
-        <div className={baseClasses} aria-label={alt}>
+        <div className={baseClasses} aria-label={alt} style={style}>
           {tileContent}
         </div>
       );
@@ -85,11 +88,9 @@ export function PlayingCard({
 
     const card = parseCardIdToCard(cardId);
     const red = isRedSuit(card.suit);
-    const textColor = red ? "text-red-600" : "text-zinc-900";
-
     const tileContent = (
       <div
-        className={`w-full h-full bg-white border border-zinc-300 rounded flex items-center justify-center gap-1 font-bold leading-none ${textColor}`}
+        className={`theme-table-tile w-full h-full gap-1 font-bold leading-none ${red ? "theme-table-tile-red" : ""}`}
       >
         <span className="font-semibold tracking-tight">{formatRank(card.rank)}</span>
         <span className="text-[10px] sm:text-[11px] leading-none">{formatSuit(card.suit)}</span>
@@ -103,6 +104,7 @@ export function PlayingCard({
           onClick={onClick}
           disabled={isCardDimmed}
           aria-label={alt}
+          style={style}
           className={`${baseClasses} p-0 border-0 bg-transparent`}
         >
           {tileContent}
@@ -110,7 +112,7 @@ export function PlayingCard({
       );
     }
     return (
-      <div className={baseClasses} aria-label={alt}>
+      <div className={baseClasses} aria-label={alt} style={style}>
         {tileContent}
       </div>
     );
@@ -130,7 +132,7 @@ export function PlayingCard({
           loading="lazy"
           decoding="async"
           onError={() => setImgError(true)}
-          className="w-full h-full object-contain pointer-events-none drop-shadow-2xs rounded bg-white"
+          className="w-full h-full object-contain pointer-events-none drop-shadow-2xs rounded bg-transparent"
         />
       );
     }
@@ -138,9 +140,9 @@ export function PlayingCard({
     // CSS Fallback rendering if SVG is missing or failed to load
     if (isBack) {
       return (
-        <div className="w-full h-full bg-blue-800 border-2 border-white rounded-md flex items-center justify-center shadow-inner">
-          <div className="w-[85%] h-[85%] border-2 border-blue-300/40 rounded-sm bg-blue-700/80 flex items-center justify-center">
-            <span className="text-white/40 text-xs font-mono font-bold">♠♥♦♣</span>
+        <div className="w-full h-full border-2 border-[var(--acc)] rounded-md bg-[var(--back)] flex items-center justify-center shadow-inner">
+          <div className="w-[85%] h-[85%] border-2 border-[var(--acc)] rounded-sm bg-[var(--chip)] flex items-center justify-center">
+            <span className="text-[var(--acc)] text-xs font-bold">♠♥♦♣</span>
           </div>
         </div>
       );
@@ -148,11 +150,11 @@ export function PlayingCard({
 
     const card = parseCardIdToCard(cardId);
     const red = isRedSuit(card.suit);
-    const textColor = red ? "text-red-600" : "text-zinc-900";
+    const textColor = red ? "text-[var(--rc)]" : "text-[var(--fk)]";
 
     return (
       <div
-        className={`w-full h-full bg-white border border-zinc-300 rounded-md p-1 flex flex-col justify-between ${textColor} shadow-xs font-bold`}
+        className={`w-full h-full border border-[var(--edge)] rounded-md p-1 flex flex-col justify-between bg-[var(--face)] ${textColor} font-bold`}
       >
         <div className="text-left text-xs leading-none">
           <div>{formatRank(card.rank)}</div>
@@ -174,6 +176,7 @@ export function PlayingCard({
         onClick={onClick}
         disabled={isCardDimmed}
         aria-label={alt}
+        style={style}
         className={`${baseClasses} p-0 border-0 bg-transparent`}
       >
         {renderContent()}
@@ -182,7 +185,7 @@ export function PlayingCard({
   }
 
   return (
-    <div className={baseClasses} aria-label={alt}>
+    <div className={baseClasses} aria-label={alt} style={style}>
       {renderContent()}
     </div>
   );

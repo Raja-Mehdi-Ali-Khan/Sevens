@@ -1,0 +1,447 @@
+@import "tailwindcss";
+
+:root[data-theme="obsidian-gold"] {
+  --bg: radial-gradient(circle at 50% 0%, rgba(212, 175, 55, .14), transparent 50%), #0a0a0c;
+  --tx: #f3ead2;
+  --mut: #b9ad8c;
+  --chip: #17171b;
+  --acc: #d4af37;
+  --acc2: #d4af37;
+  --acc2t: #1a1400;
+  --back: #17171b;
+  --board: rgba(16, 16, 19, .7);
+  --edge: #6b5a1e;
+  --bt: #f3ead2;
+  --tile: #17171b;
+  --tk: #f3ead2;
+  --rt: #ff6b6b;
+  --rb: #ff6b6b;
+  --face: #f3ead2;
+  --fk: #121212;
+  --rc: #b3261e;
+  --ff: Georgia, 'Times New Roman', serif;
+  --glow: 0 0 16px rgba(212, 175, 55, .55);
+}
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html,
+  body,
+  #root {
+    min-height: 100%;
+    margin: 0;
+    padding: 0;
+    touch-action: manipulation;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--tx);
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    touch-action: manipulation;
+    font: inherit;
+  }
+
+  input[type="text"] {
+    font-size: 16px;
+  }
+}
+
+*,
+*::before,
+*::after {
+  font-family: var(--ff);
+}
+
+.safe-area-pt {
+  padding-top: max(8px, env(safe-area-inset-top));
+}
+
+.safe-area-pb {
+  padding-bottom: max(8px, env(safe-area-inset-bottom));
+}
+
+.safe-area-pl {
+  padding-left: max(8px, env(safe-area-inset-left));
+}
+
+.safe-area-pr {
+  padding-right: max(8px, env(safe-area-inset-right));
+}
+
+.safe-top {
+  padding-top: max(8px, env(safe-area-inset-top));
+}
+
+.safe-bottom {
+  padding-bottom: max(8px, env(safe-area-inset-bottom));
+}
+
+.app-shell {
+  position: relative;
+  isolation: isolate;
+  background: var(--bg);
+  color: var(--tx);
+}
+
+.watermark {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 340px;
+  height: 340px;
+  max-width: 94vw;
+  max-height: 94vw;
+  transform: translate(-50%, -50%);
+  opacity: .10;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.app-content {
+  position: relative;
+  z-index: 1;
+}
+
+.theme-main {
+  color: var(--tx);
+}
+
+.theme-muted {
+  color: var(--mut);
+}
+
+.theme-accent {
+  color: var(--acc);
+}
+
+.theme-red {
+  color: var(--rt);
+}
+
+.theme-panel {
+  background: var(--chip);
+  border-color: var(--edge);
+}
+
+.theme-board {
+  background: var(--board);
+  border: 1px solid var(--edge);
+  border-radius: 16px;
+  padding: 10px 6px;
+}
+
+.theme-panel-soft {
+  background: color-mix(in srgb, var(--chip) 76%, transparent);
+  border-color: var(--edge);
+}
+
+.theme-winner-row {
+  background: var(--acc);
+  color: var(--acc2t);
+}
+
+.theme-local-row {
+  background: var(--board);
+}
+
+.theme-divider {
+  border-color: var(--edge);
+}
+
+.theme-turn {
+  background: var(--chip);
+  border: 2px solid var(--acc);
+}
+
+.theme-button-primary {
+  min-height: 44px;
+  border: 1px solid var(--acc);
+  border-radius: 12px;
+  background: var(--acc);
+  color: var(--acc2t);
+  font-weight: 700;
+}
+
+.theme-button-secondary {
+  min-height: 44px;
+  border: 1px solid var(--edge);
+  border-radius: 12px;
+  background: var(--chip);
+  color: var(--tx);
+}
+
+.theme-input {
+  border: 1px solid var(--edge);
+  border-radius: 12px;
+  background: var(--chip);
+  color: var(--tx);
+  font-size: 16px;
+}
+
+.theme-input:focus-visible {
+  outline: 2px solid var(--acc);
+  outline-offset: 2px;
+}
+
+.theme-badge {
+  border-radius: 6px;
+  background: var(--acc2);
+  color: var(--acc2t);
+  padding: 2px 6px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.theme-toast {
+  border: 1px solid var(--acc);
+  background: var(--chip);
+  color: var(--tx);
+}
+
+.theme-score-pill {
+  min-height: 44px;
+  border-radius: 999px;
+  background: var(--chip);
+  color: var(--tx);
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.theme-seat {
+  border: 1px solid var(--edge);
+  border-radius: 12px;
+  background: var(--chip);
+  padding: var(--chip-padding, 10px);
+}
+
+.theme-mini-back {
+  width: 13px;
+  height: 20px;
+  border: 1px solid var(--acc);
+  border-radius: 3px;
+  background: var(--back);
+}
+
+.theme-table-header {
+  color: var(--bt);
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.theme-table-header-red {
+  color: var(--rb);
+}
+
+.theme-table-tile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--acc);
+  border-radius: 6px;
+  background: var(--tile);
+  color: var(--tk);
+  font-size: 14px;
+}
+
+.theme-table-tile-red {
+  color: var(--rt);
+}
+
+.theme-table-tile-recent {
+  outline: 3px solid var(--acc);
+  outline-offset: 1px;
+}
+
+.theme-table-placeholder {
+  display: flex;
+  width: var(--tile-width, 36px);
+  height: var(--tile-step, 23px);
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed var(--edge);
+  border-radius: 6px;
+  background: var(--tile);
+  color: var(--mut);
+  font-size: 14px;
+  pointer-events: none;
+}
+
+.theme-open-slot {
+  display: flex;
+  position: relative;
+  width: var(--tile-width, 36px);
+  height: var(--tile-height, 46px);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed var(--acc);
+  border-radius: 6px;
+  background: var(--tile);
+  color: var(--acc);
+}
+
+.theme-playable-card {
+  box-shadow: 0 0 0 3px var(--acc), var(--glow);
+  transform: translateY(-12px);
+}
+
+.theme-dimmed-card {
+  opacity: .5;
+  pointer-events: none;
+}
+
+.table-screen {
+  --tile-width: 36px;
+  --tile-height: 46px;
+  --tile-step: 23px;
+  --hand-card-width: 78px;
+  --hand-card-height: 108px;
+  --chip-padding: 10px;
+  --section-gap: 12px;
+  --opponents-height: 108px;
+  --board-gap-extra: 2px;
+  --hand-row-overlap: 40px;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+  gap: var(--section-gap);
+  padding: max(8px, env(safe-area-inset-top)) 8px max(8px, env(safe-area-inset-bottom));
+}
+
+.table-section-fixed,
+.table-hand {
+  flex: none;
+}
+
+.table-opponents {
+  min-height: var(--opponents-height);
+  margin-bottom: var(--board-gap-extra);
+}
+
+.table-board-region {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+}
+
+.table-board-region > .theme-board {
+  flex: none;
+  margin-block: auto;
+}
+
+.table-status {
+  line-height: 1.25;
+}
+
+.table-hand {
+  margin-top: auto;
+  padding-bottom: 4px;
+}
+
+.table-card-size {
+  width: var(--tile-width, 36px);
+  height: var(--tile-height, 46px);
+  min-width: var(--tile-width, 36px);
+}
+
+.hand-card-size {
+  width: var(--hand-card-width, 78px);
+  height: var(--hand-card-height, 108px);
+  min-width: var(--hand-card-width, 78px);
+}
+
+.hand-row-overlap {
+  margin-top: calc(-1 * var(--hand-row-overlap));
+}
+
+.table-suit-stack {
+  display: grid;
+  grid-template-rows: repeat(13, var(--tile-step, 23px));
+  justify-items: center;
+  min-height: calc(12 * var(--tile-step, 23px) + var(--tile-height, 46px));
+}
+
+.theme-table-placeholder {
+  position: relative;
+}
+
+.table-board-card {
+  position: relative;
+}
+
+.table-board-card.theme-table-tile-recent {
+  z-index: 1000;
+}
+
+@media (max-height: 760px) {
+  .table-screen {
+    --tile-width: 32px;
+    --tile-height: 42px;
+    --tile-step: 21px;
+    --hand-card-width: 70px;
+    --hand-card-height: 98px;
+    --chip-padding: 8px;
+    --section-gap: 10px;
+    --opponents-height: 100px;
+    --board-gap-extra: 4px;
+    --hand-row-overlap: 36px;
+  }
+}
+
+@media (max-height: 680px) {
+  .table-screen {
+    --tile-width: 28px;
+    --tile-height: 38px;
+    --tile-step: 19px;
+    --hand-card-width: 62px;
+    --hand-card-height: 86px;
+    --chip-padding: 6px;
+    --section-gap: 8px;
+    --opponents-height: 96px;
+    --board-gap-extra: 6px;
+    --hand-row-overlap: 30px;
+  }
+}
+
+@media (max-height: 600px) {
+  .table-screen {
+    --tile-width: 24px;
+    --tile-height: 32px;
+    --tile-step: 16px;
+    --hand-card-width: 54px;
+    --hand-card-height: 76px;
+    --chip-padding: 4px;
+    --section-gap: 8px;
+    --opponents-height: 80px;
+    --board-gap-extra: 6px;
+    --hand-row-overlap: 24px;
+  }
+
+  .table-mini-backs {
+    display: none;
+  }
+}
+
+@media (max-width: 333px) and (min-height: 681px) {
+  .table-screen {
+    --hand-card-width: 64px;
+  }
+}

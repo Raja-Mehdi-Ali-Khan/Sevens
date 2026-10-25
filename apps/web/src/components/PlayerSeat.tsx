@@ -25,17 +25,17 @@ export function PlayerSeat({
 
   return (
     <div
-      className={`flex-1 min-w-0 max-w-[130px] rounded-lg p-1.5 sm:p-2 transition-all flex flex-col justify-between ${
+      className={`theme-seat flex-1 min-w-0 max-w-[130px] flex flex-col justify-between ${
         isCurrentTurn
-          ? "bg-amber-50 border-2 border-amber-500 ring-2 ring-amber-400/40 shadow-sm"
-          : "bg-white/95 border border-zinc-200 shadow-2xs"
+          ? "theme-turn"
+          : ""
       }`}
     >
       {/* Top line: position label and offline badge */}
-      <div className="flex items-center justify-between text-[10px] text-zinc-400 font-medium leading-tight">
+      <div className="flex items-center justify-between text-[10px] text-[var(--mut)] font-medium leading-tight">
         <span className="truncate">{positionLabel}</span>
         {isDisconnected && (
-          <span className="text-[9px] bg-red-100 text-red-700 px-1 py-0.2 rounded font-semibold uppercase tracking-wider">
+          <span className="text-[9px] text-[var(--rt)] px-1 py-0.2 rounded font-semibold uppercase tracking-wider">
             Bot
           </span>
         )}
@@ -43,7 +43,7 @@ export function PlayerSeat({
 
       {/* Middle line: Player Name */}
       <div
-        className="font-bold text-xs text-zinc-900 truncate leading-tight my-0.5"
+        className="font-bold text-sm text-[var(--tx)] truncate leading-tight my-0.5"
         title={name}
       >
         {name}
@@ -54,7 +54,7 @@ export function PlayerSeat({
         {playableCount !== null && (
           <span
             aria-label={`${playableCount} cards playable as of their last turn`}
-            className="max-w-full truncate whitespace-nowrap rounded bg-amber-100 px-1 text-[9px] font-semibold leading-4 text-amber-900"
+            className="theme-badge max-w-full truncate whitespace-nowrap leading-4"
           >
             {hintLabel(playableCount)}
           </span>
@@ -63,17 +63,17 @@ export function PlayerSeat({
 
       {/* Bottom line: Card count and mini stack of card backs */}
       <div className="flex items-center justify-between mt-0.5">
-        <span className="text-[11px] font-mono font-bold text-zinc-700 leading-tight">
-          {cardCount} <span className="text-[10px] font-normal text-zinc-400">{cardCount === 1 ? "cd" : "cds"}</span>
+        <span className="text-xs font-bold text-[var(--mut)] leading-tight">
+          {cardCount} <span className="text-[10px] font-normal text-[var(--mut)]">{cardCount === 1 ? "cd" : "cds"}</span>
         </span>
 
         {/* Small stack of card backs */}
-        <div className="relative h-4 w-6 flex items-center">
+        <div className="table-mini-backs relative h-5 w-[41px] flex items-center">
           {Array.from({ length: stackCount }).map((_, i) => (
             <div
               key={i}
-              className="absolute top-0 w-3 h-4 rounded-[2px] bg-blue-800 border border-blue-950 shadow-2xs"
-              style={{ left: `${i * 3}px` }}
+              className="theme-mini-back absolute top-0"
+              style={{ left: `${i * 7}px` }}
             />
           ))}
         </div>
