@@ -1,5 +1,5 @@
 import { createDeck, shuffle } from "./deck";
-import { getLegalMoves, getTurnPlan } from "./rules";
+import { getLegalMoves, getTurnPlan, LOW_CARD_HINT_THRESHOLD } from "./rules";
 import { scoreHand } from "./scoring";
 import type { Card, GameEvent, GameState, Rank, Result, Rng, Seat, Suit, TableState } from "./types";
 
@@ -26,6 +26,7 @@ export function createGame(rng: Rng): GameState {
     round: 1,
     phase: "in_round",
     ...dealRound(rng),
+    lowCardHints: [null, null, null, null],
     totals: [0, 0, 0, 0],
     roundScores: null,
     roundWinner: null,
@@ -61,6 +62,7 @@ function finishRound(state: GameState, hands: Card[][], seat: Seat): { state: Ga
   const nextState: GameState = {
     ...state,
     hands,
+    lowCardHints: [null, null, null, null],
     phase: gameOver ? "game_over" : "round_over",
     totals,
     roundScores,
@@ -72,6 +74,15 @@ function finishRound(state: GameState, hands: Card[][], seat: Seat): { state: Ga
   ];
   if (winners !== null) events.push({ type: "game_over", winners: [...winners], totals: [...totals] });
   return { state: nextState, events };
+}
+
+function snapshotSeatHint(state: GameState, seat: Seat, hands = state.hands, table = state.table): (number | null)[] {
+  const lowCardHints = [...state.lowCardHints];
+  const handSize = hands[seat]!.length;
+  lowCardHints[seat] = handSize >= 1 && handSize <= LOW_CARD_HINT_THRESHOLD
+    ? getLegalMoves({ ...state, hands, table }, seat).length
+    : null;
+  return lowCardHints;
 }
 
 export function playCard(state: GameState, seat: Seat, card: Card): Result<{ state: GameState; events: GameEvent[] }> {
@@ -94,7 +105,7 @@ export function playCard(state: GameState, seat: Seat, card: Card): Result<{ sta
   );
   const table = updateTable(state.table, card);
   const events: GameEvent[] = [{ type: "card_played", seat, card: { ...card }, auto }];
-  const nextState = { ...state, hands, table };
+  const nextState = { ...state, hands, table, lowCardHints: snapshotSeatHint(state, seat, hands, table) };
 
   if (hands[seat]!.length === 0) {
     const finished = finishRound(nextState, hands, seat);
@@ -115,7 +126,11 @@ export function passTurn(state: GameState, seat: Seat): Result<{ state: GameStat
   return {
     ok: true,
     value: {
-      state: { ...state, currentSeat: ((seat + 1) % 4) as Seat },
+      state: {
+        ...state,
+        currentSeat: ((seat + 1) % 4) as Seat,
+        lowCardHints: snapshotSeatHint(state, seat),
+      },
       events: [{ type: "passed", seat }],
     },
   };
@@ -128,6 +143,7 @@ export function startNextRound(state: GameState, rng: Rng): Result<{ state: Game
   const nextState: GameState = {
     ...state,
     ...deal,
+    lowCardHints: [null, null, null, null],
     round,
     phase: "in_round",
     roundScores: null,

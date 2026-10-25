@@ -35,6 +35,33 @@ function expectCardConservation(state: GameState): void {
   invariant(new Set(allCards).size === 52, "Expected 52 unique cards");
 }
 
+function independentlyCountLegalCards(state: GameState, seat: Seat): number {
+  const emptyTable = SUITS.every((suit) => state.table[suit] === null);
+  return state.hands[seat]!.filter((card) => {
+    if (emptyTable) return card.suit === "H" && card.rank === 7;
+    const run = state.table[card.suit];
+    if (card.rank === 7 && run === null) return true;
+    return run !== null && (card.rank === run.low - 1 || card.rank === run.high + 1);
+  }).length;
+}
+
+function expectHintTransition(before: GameState, after: GameState, actor: Seat): void {
+  if (after.phase !== "in_round") {
+    expect(after.lowCardHints).toEqual([null, null, null, null]);
+    return;
+  }
+
+  const handSize = after.hands[actor]!.length;
+  const expected = handSize >= 1 && handSize <= 3
+    ? independentlyCountLegalCards(after, actor)
+    : null;
+  expect(after.lowCardHints[actor]).toBe(expected);
+
+  for (const seat of SEATS) {
+    if (seat !== actor) expect(after.lowCardHints[seat]).toBe(before.lowCardHints[seat]);
+  }
+}
+
 function expectViewsHideOtherHands(state: GameState): void {
   const owners = new Map(state.hands.flatMap((hand, seat) => hand.map((card) => [cardId(card), seat] as const)));
   for (const seat of SEATS) {
@@ -54,7 +81,17 @@ function expectInvariants(state: GameState): void {
   expectCardConservation(state);
   invariant(state.hands.length === 4, "Expected four hands");
   for (const hand of state.hands) invariant(hand.length >= 0 && hand.length <= 13, "Invalid hand size");
+  invariant(state.lowCardHints.length === 4, "Expected four low-card hints");
+  for (const hint of state.lowCardHints) {
+    invariant(hint === null || (Number.isInteger(hint) && hint >= 0 && hint <= 3), "Invalid low-card hint");
+  }
   expectViewsHideOtherHands(state);
+  for (const seat of SEATS) {
+    const view = getPlayerView(state, seat);
+    expect(view.playableCounts).toEqual(
+      state.phase === "in_round" ? state.lowCardHints : [null, null, null, null],
+    );
+  }
   if (state.phase === "in_round") {
     invariant(SEATS.some((seat) => getLegalMoves(state, seat).length > 0), "Round reached a deadlock");
   }
@@ -99,6 +136,7 @@ describe("seeded full-game simulations", () => {
         }
 
         const seat = state.currentSeat;
+        const beforeMove = state;
         const plan = getTurnPlan(state);
         if (plan.kind === "auto_pass") {
           const result = passTurn(state, seat);
@@ -114,6 +152,7 @@ describe("seeded full-game simulations", () => {
           if (!result.ok) throw new Error(result.error);
           state = result.value.state;
         }
+        expectHintTransition(beforeMove, state, seat);
         expectInvariants(state);
       }
 

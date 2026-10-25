@@ -3,6 +3,8 @@ import type { Card, GameState, Seat, Suit, TableState, TurnPlan } from "./types"
 const SUITS: Suit[] = ["H", "D", "C", "S"];
 const SEVEN_OF_HEARTS: Card = { suit: "H", rank: 7 };
 
+export const LOW_CARD_HINT_THRESHOLD = 3;
+
 function isEmptyTable(table: TableState): boolean {
   return SUITS.every((suit) => table[suit] === null);
 }

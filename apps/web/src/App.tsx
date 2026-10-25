@@ -36,6 +36,13 @@ export function App() {
         dispatch({ type: "SET_VIEW", view });
       },
       onEvent: (event: GameEvent) => {
+        if (event.type === "card_played") {
+          const cardId = `${event.card.rank}${event.card.suit}` as CardId;
+          dispatch({ type: "SET_RECENT_CARD", cardId });
+        } else if (event.type === "round_started") {
+          dispatch({ type: "SET_RECENT_CARD", cardId: null });
+        }
+
         const toast = createToastFromEvent(event, lobbyRef.current);
         if (toast) {
           dispatch({ type: "ADD_TOAST", toast });
@@ -78,6 +85,23 @@ export function App() {
     }
   }, []);
 
+  // Listen for visibility changes to recover dropped mobile connections
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        const hasToken = netClient.getReconnectionToken() !== null;
+        if (hasToken && (state.connectionStatus === "disconnected" || state.connectionStatus === "idle")) {
+          void netClient.tryReconnect();
+        }
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [state.connectionStatus]);
+
   const handleCreateRoom = async (name: string) => {
     setLoading(true);
     dispatch({ type: "SET_SERVER_ERROR", error: null });
@@ -114,70 +138,73 @@ export function App() {
     netClient.sendPlay(cardId);
   };
 
-  const handleLeaveRoom = async () => {
-    await netClient.leave();
+  const handleLeaveRoom = () => {
     dispatch({ type: "RESET" });
+    void netClient.leave();
   };
 
   const screen = getScreenName(state);
 
   return (
-    <div className="min-h-screen bg-zinc-50 text-zinc-900 flex flex-col font-sans">
-      <ConnectionBanner
-        status={state.connectionStatus}
-        message={state.connectionMessage}
-        serverError={state.serverError}
-        onClearError={() => dispatch({ type: "SET_SERVER_ERROR", error: null })}
-      />
-
-      <ToastContainer
-        toasts={state.toasts}
-        onDismiss={(id) => dispatch({ type: "REMOVE_TOAST", id })}
-      />
-
-      {screen === "home" && (
-        <HomeScreen
-          initialName={state.localName}
-          error={state.serverError}
-          loading={loading}
-          onCreateRoom={handleCreateRoom}
-          onJoinRoom={handleJoinRoom}
+    <div className="min-h-[100dvh] bg-zinc-200 flex justify-center text-zinc-900 font-sans antialiased">
+      <div className="w-full max-w-[480px] min-h-[100dvh] bg-white relative flex flex-col shadow-2xl overflow-hidden">
+        <ConnectionBanner
+          status={state.connectionStatus}
+          message={state.connectionMessage}
+          serverError={state.serverError}
+          onClearError={() => dispatch({ type: "SET_SERVER_ERROR", error: null })}
         />
-      )}
 
-      {screen === "lobby" && state.lobby && (
-        <LobbyScreen
-          lobby={state.lobby}
-          mySeat={state.mySeat}
-          onStartGame={handleStartGame}
-          onLeaveRoom={handleLeaveRoom}
+        <ToastContainer
+          toasts={state.toasts}
+          onDismiss={(id) => dispatch({ type: "REMOVE_TOAST", id })}
         />
-      )}
 
-      {screen === "table" && state.view && (
-        <TableScreen
-          view={state.view}
-          lobby={state.lobby}
-          onPlayCard={handlePlayCard}
-          onLeaveRoom={handleLeaveRoom}
-        />
-      )}
+        {screen === "home" && (
+          <HomeScreen
+            initialName={state.localName}
+            error={state.serverError}
+            loading={loading}
+            onCreateRoom={handleCreateRoom}
+            onJoinRoom={handleJoinRoom}
+          />
+        )}
 
-      {screen === "round_over" && state.view && (
-        <RoundSummaryScreen
-          view={state.view}
-          lobby={state.lobby}
-          onLeaveRoom={handleLeaveRoom}
-        />
-      )}
+        {screen === "lobby" && state.lobby && (
+          <LobbyScreen
+            lobby={state.lobby}
+            mySeat={state.mySeat}
+            onStartGame={handleStartGame}
+            onLeaveRoom={handleLeaveRoom}
+          />
+        )}
 
-      {screen === "game_over" && state.view && (
-        <GameOverScreen
-          view={state.view}
-          lobby={state.lobby}
-          onBackToHome={handleLeaveRoom}
-        />
-      )}
+        {screen === "table" && state.view && (
+          <TableScreen
+            view={state.view}
+            lobby={state.lobby}
+            recentCardId={state.recentCardId}
+            onPlayCard={handlePlayCard}
+            onLeaveRoom={handleLeaveRoom}
+          />
+        )}
+
+        {screen === "round_over" && state.view && (
+          <RoundSummaryScreen
+            view={state.view}
+            lobby={state.lobby}
+            onLeaveRoom={handleLeaveRoom}
+          />
+        )}
+
+        {screen === "game_over" && state.view && (
+          <GameOverScreen
+            view={state.view}
+            lobby={state.lobby}
+            onBackToHome={handleLeaveRoom}
+          />
+        )}
+      </div>
     </div>
   );
 }

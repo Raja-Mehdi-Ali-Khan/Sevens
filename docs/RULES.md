@@ -50,6 +50,14 @@ The round's first move (`7H`) is always `auto_play`.
 
 A round cannot deadlock. While any card remains in a hand, at least one seat has a legal card.
 
+### 4.4 Low-card hint
+- After a seat finishes its own turn, if it has 1 to 3 cards left and the round is still in progress, record how many of its remaining cards are legal against the table immediately after that turn.
+- This value is a snapshot. It is not recomputed when another seat plays or passes, so it can be out of date by design. It updates only after that seat's next turn ends.
+- A pass with 1 to 3 cards remaining records 0, because passing is legal only when no card can be played.
+- With 4 or more cards remaining, record no hint. If the turn ends the round, clear every hint.
+- The hint is only a count. It never reveals which cards are legal.
+- Every new round starts with no hints.
+
 ## 5. Round end and scoring
 - The first player to empty their hand **wins the round and scores 0**.
 - Every other player scores the sum of their remaining cards' rank values (A=1, 2 to 10 face value, J=11, Q=12, K=13).
@@ -64,6 +72,7 @@ After round 7, the seat(s) with the lowest total win. If several seats share the
 |---|---|
 | Your own hand and which of your cards are playable | You only |
 | Table runs, played cards, turn order, each seat's card count, passes, round scores, totals | Everyone |
+| Each seat's low-card playable-count snapshot (count only; may be out of date by design) | Everyone |
 | Another seat's cards | Nobody (until round scoring, only counts are shown) |
 
 A pass is public by design: everyone learns that seat had no playable card.
@@ -92,6 +101,13 @@ Defaults, defined as constants in `apps/server/src/config.ts`:
 
 **Turn plans**
 - 1 legal card -> `auto_play`; 0 -> `auto_pass`; 3 legal cards -> `await_choice` with those 3.
+
+**Low-card hints**
+- Table `{ H: {7,7} }`, seat 1 holds `[6H, 8H, 13S, 2D]` and plays `6H` -> remaining `[8H, 13S, 2D]`, hint `1` (`8H` is legal; `13S` and `2D` are not).
+- Stale snapshot: table `{ H: {7,7}, D: {7,7} }`, seat 1 holds `[6H, 2D, 13S, 9D]` and plays `6H` -> hint `0` (`9D` needs `8D` first). Seat 2 then plays `8D`; seat 1's hint remains `0` although a live count would now be `1`. At seat 1's next turn it auto-plays `9D`; remaining `[2D, 13S]` -> recomputed hint `0`.
+- A seat with 4 or more cards after its turn -> no hint (`null`).
+- A pass with 2 cards left -> hint `0`.
+- Starting a new round -> all hints are `null`.
 
 **Invariants (must hold after every move in every test)**
 - Hands plus table always contain exactly 52 unique cards.

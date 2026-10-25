@@ -42,12 +42,15 @@ describe("message schemas", () => {
       turnPlan: "auto_play",
       table: { H: null, D: null, C: null, S: null },
       handCounts: [13, 13, 13, 13],
+      playableCounts: [null, null, null, null],
       totals: [0, 0, 0, 0],
       roundScores: null,
       roundWinner: null,
       winners: null,
     };
     expect(viewMessageSchema.safeParse(view).success).toBe(true);
+    expect(viewMessageSchema.safeParse({ ...view, playableCounts: [4, null, null, null] }).success).toBe(false);
+    expect(viewMessageSchema.safeParse({ ...view, playableCounts: [null, null, null] }).success).toBe(false);
     expect(viewMessageSchema.safeParse({ ...view, otherHand: [] }).success).toBe(false);
     expect(eventMessageSchema.safeParse({ type: "passed", seat: 1 }).success).toBe(true);
     expect(eventMessageSchema.safeParse({ type: "passed", seat: 1, cards: [] }).success).toBe(false);

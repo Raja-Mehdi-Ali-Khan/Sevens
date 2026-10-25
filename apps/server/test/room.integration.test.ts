@@ -18,7 +18,7 @@ const TEST_TIMINGS: TimingConfig = {
 
 const VIEW_KEYS = [
   "seat", "round", "phase", "currentSeat", "hand", "legalCards", "turnPlan", "table",
-  "handCounts", "totals", "roundScores", "roundWinner", "winners",
+  "handCounts", "playableCounts", "totals", "roundScores", "roundWinner", "winners",
 ].sort();
 
 function delay(milliseconds: number): Promise<void> {
@@ -82,6 +82,18 @@ describe("GameRoom integration", () => {
         clientSeats.set(client, view.seat);
         if (Object.keys(view).sort().join("|") !== VIEW_KEYS.join("|")) {
           protocolProblems.push("view contained unexpected fields");
+        }
+        if (view.playableCounts.length !== 4) {
+          protocolProblems.push("playableCounts did not have four entries");
+        } else {
+          view.playableCounts.forEach((count, seat) => {
+            const handCount = view.handCounts[seat]!;
+            if (view.phase !== "in_round" || handCount > 3) {
+              if (count !== null) protocolProblems.push(`seat ${seat} had a hint when one was not allowed`);
+            } else if (count !== null && (!Number.isInteger(count) || count < 0 || count > handCount)) {
+              protocolProblems.push(`seat ${seat} had an invalid playable count`);
+            }
+          });
         }
         const seen = startHands.get(expectedStartRound) ?? new Map<Seat, string[]>();
         if (!seen.has(view.seat) && view.round === expectedStartRound) {

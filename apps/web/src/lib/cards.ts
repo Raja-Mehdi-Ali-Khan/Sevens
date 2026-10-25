@@ -17,6 +17,29 @@ export const SUIT_NAMES: Record<Suit, string> = {
   S: "Spades",
 };
 
+export const SUIT_FULL_NAMES: Record<Suit, string> = {
+  H: "hearts",
+  D: "diamonds",
+  C: "clubs",
+  S: "spades",
+};
+
+export const RANK_NAMES: Record<Rank, string> = {
+  1: "Ace",
+  2: "2",
+  3: "3",
+  4: "4",
+  5: "5",
+  6: "6",
+  7: "7",
+  8: "8",
+  9: "9",
+  10: "10",
+  11: "Jack",
+  12: "Queen",
+  13: "King",
+};
+
 const SUIT_ORDER: Record<Suit, number> = {
   H: 0,
   D: 1,
@@ -59,6 +82,16 @@ export function parseCardIdToCard(id: CardId): Card {
 
 export function formatCardId(id: CardId): string {
   return formatCard(parseCardIdToCard(id));
+}
+
+/**
+ * Pure function: converts CardId | 'back' to descriptive text for alt/aria-label.
+ * e.g. "7 of hearts", "Ace of spades", "Card back".
+ */
+export function cardAltText(cardId: CardId | "back"): string {
+  if (cardId === "back") return "Card back";
+  const card = parseCardIdToCard(cardId);
+  return `${RANK_NAMES[card.rank]} of ${SUIT_FULL_NAMES[card.suit]}`;
 }
 
 /**

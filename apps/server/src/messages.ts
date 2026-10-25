@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { CardId, GameEvent, PlayerView, Seat } from "@cardgame/engine";
+import { LOW_CARD_HINT_THRESHOLD } from "@cardgame/engine";
 import { NAME_MAX_LENGTH, ROOM_CODE_LENGTH } from "./config";
 import { normalizeRoomCode } from "./roomCode";
 
@@ -12,6 +13,9 @@ const runSchema = z.object({ low: rankSchema, high: rankSchema }).strict();
 const tableSchema = z.object({ H: runSchema.nullable(), D: runSchema.nullable(), C: runSchema.nullable(), S: runSchema.nullable() }).strict();
 const nullableScoresSchema = z.array(z.number().int().nonnegative()).length(4).nullable();
 const scoresSchema = z.array(z.number().int().nonnegative()).length(4);
+const playableCountsSchema = z.array(
+  z.number().int().min(0).max(LOW_CARD_HINT_THRESHOLD).nullable(),
+).length(4);
 
 export const joinOptionsSchema = z.object({
   name: z.string().min(1).max(NAME_MAX_LENGTH),
@@ -39,6 +43,7 @@ export const viewMessageSchema = z.object({
   turnPlan: z.enum(["auto_play", "auto_pass", "await_choice", "waiting"]),
   table: tableSchema,
   handCounts: scoresSchema,
+  playableCounts: playableCountsSchema,
   totals: scoresSchema,
   roundScores: nullableScoresSchema,
   roundWinner: seatSchema.nullable(),

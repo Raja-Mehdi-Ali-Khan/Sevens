@@ -23,6 +23,7 @@ export interface GameState {
   round: number;
   phase: Phase;
   hands: Card[][];
+  lowCardHints: (number | null)[];
   table: TableState;
   currentSeat: Seat;
   totals: number[];
@@ -63,6 +64,7 @@ export interface PlayerView {
   turnPlan: "auto_play" | "auto_pass" | "await_choice" | "waiting";
   table: TableState;
   handCounts: number[];
+  playableCounts: (number | null)[];
   totals: number[];
   roundScores: number[] | null;
   roundWinner: Seat | null;

@@ -24,13 +24,13 @@ export function GameOverScreen({
   const rankedSeats = [...seats].sort((a, b) => (view.totals[a] ?? 0) - (view.totals[b] ?? 0));
 
   return (
-    <div className="min-h-screen bg-zinc-100 flex items-center justify-center p-4">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-xl border border-zinc-200 p-6 sm:p-8 space-y-6">
-        <div className="text-center space-y-2">
-          <span className="text-xs font-bold uppercase tracking-widest text-amber-600 bg-amber-50 px-3 py-1 rounded-full border border-amber-200">
+    <div className="min-h-[100dvh] bg-zinc-100 flex flex-col items-center justify-center p-4 overflow-y-auto safe-top safe-bottom select-none">
+      <div className="max-w-md w-full bg-white rounded-2xl shadow-xl border border-zinc-200 p-5 sm:p-7 space-y-5 my-auto">
+        <div className="text-center space-y-1.5">
+          <span className="text-[11px] font-bold uppercase tracking-widest text-amber-700 bg-amber-50 px-3 py-1 rounded-full border border-amber-200 inline-block">
             Game Over (7 Rounds Complete)
           </span>
-          <h1 className="text-3xl font-extrabold text-zinc-900">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-zinc-900">
             {winnerNames.length > 1
               ? `Tie: ${winnerNames.join(" & ")} win!`
               : `${winnerNames[0] ?? "Winner"} wins!`}
@@ -41,8 +41,8 @@ export function GameOverScreen({
         </div>
 
         {/* Final Standings */}
-        <div className="space-y-2.5">
-          <div className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+        <div className="space-y-2">
+          <div className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
             Final Standings
           </div>
           <div className="divide-y divide-zinc-100 border border-zinc-200 rounded-xl overflow-hidden">
@@ -55,7 +55,7 @@ export function GameOverScreen({
               return (
                 <div
                   key={seat}
-                  className={`flex items-center justify-between p-3 text-sm ${
+                  className={`flex items-center justify-between p-3 text-xs sm:text-sm ${
                     isWinner
                       ? "bg-amber-50/80 font-bold text-amber-950"
                       : isLocal
@@ -71,20 +71,20 @@ export function GameOverScreen({
                     >
                       #{index + 1}
                     </span>
-                    <span>{name}</span>
+                    <span className="truncate max-w-[120px]">{name}</span>
                     {isLocal && (
-                      <span className="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-bold">
+                      <span className="text-[9px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-bold">
                         You
                       </span>
                     )}
                     {isWinner && (
-                      <span className="text-[10px] bg-amber-200 text-amber-900 px-1.5 py-0.5 rounded font-extrabold uppercase">
+                      <span className="text-[9px] bg-amber-200 text-amber-900 px-1.5 py-0.5 rounded font-extrabold uppercase">
                         Winner
                       </span>
                     )}
                   </div>
                   <div className="font-mono font-bold text-right">
-                    {total} <span className="text-xs font-normal text-zinc-500">pts</span>
+                    {total} <span className="text-[11px] font-normal text-zinc-500">pts</span>
                   </div>
                 </div>
               );
@@ -92,11 +92,12 @@ export function GameOverScreen({
           </div>
         </div>
 
-        {/* Action Button */}
+        {/* Action Button: Large 44px+ min-height */}
         <div className="pt-2">
           <button
+            type="button"
             onClick={onBackToHome}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-xl text-sm shadow-md transition-all cursor-pointer"
+            className="w-full min-h-[48px] bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold py-3 px-4 rounded-xl text-sm shadow-md transition-all touch-manipulation cursor-pointer flex items-center justify-center"
           >
             Back to Home
           </button>
