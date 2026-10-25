@@ -29,6 +29,7 @@ export interface GameState {
   round: number;                 // 1..7
   phase: Phase;
   hands: Card[][];               // index = seat, always length 4
+  lowCardHints: (number | null)[]; // count-only snapshot after each seat's last turn, length 4
   table: TableState;
   currentSeat: Seat;
   totals: number[];              // cumulative penalty, length 4, completed rounds only
@@ -85,6 +86,7 @@ export interface PlayerView {
   turnPlan: 'auto_play' | 'auto_pass' | 'await_choice' | 'waiting';
   table: TableState;
   handCounts: number[];          // length 4
+  playableCounts: (number | null)[]; // copy of lowCardHints in_round; otherwise four nulls
   totals: number[];
   roundScores: number[] | null;
   roundWinner: Seat | null;
