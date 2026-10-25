@@ -9,10 +9,10 @@ Do phases in order. Do not start a phase until the previous one is green (`npm r
 - [x] `AGENTS.md` and `docs/*.md` committed
 
 ## Phase 1: Engine (`packages/engine`)  Agent: Codex
-- [ ] Package `@cardgame/engine`, ESM, strict TS, Vitest, scripts `test` and `typecheck`
-- [ ] All exports in `docs/ARCHITECTURE.md` section 2 implemented
-- [ ] Unit tests cover every vector in `docs/RULES.md` section 10
-- [ ] Simulation test: 500 seeded random full games (random choice among options). Assert all invariants from RULES section 10, no deadlock, and `getPlayerView` never contains another seat's cards
+- [x] Package `@cardgame/engine`, ESM, strict TS, Vitest, scripts `test` and `typecheck`
+- [x] All exports in `docs/ARCHITECTURE.md` section 2 implemented
+- [x] Unit tests cover every vector in `docs/RULES.md` section 10
+- [x] Simulation test: 500 seeded random full games (random choice among options). Assert all invariants from RULES section 10, no deadlock, and `getPlayerView` never contains another seat's cards
 **Done when:** the simulation passes and `getTurnPlan` / `playCard` / `passTurn` / `startNextRound` behave exactly as RULES.md describes.
 
 ## Phase 2: Server (`apps/server`)  Agent: Codex
