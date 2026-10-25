@@ -1,8 +1,6 @@
-import type { Seat } from "@cardgame/engine";
 import { hintLabel } from "../lib/hintLabel";
 
 interface PlayerSeatProps {
-  seat: Seat;
   name: string;
   cardCount: number;
   playableCount: number | null;
@@ -11,7 +9,6 @@ interface PlayerSeatProps {
 }
 
 export function PlayerSeat({
-  seat: _seat,
   name,
   cardCount,
   playableCount,
@@ -23,32 +20,31 @@ export function PlayerSeat({
 
   return (
     <div
-      className={`theme-seat flex-1 min-w-0 max-w-[130px] flex flex-col justify-between ${
+      className={`theme-seat flex-1 min-w-0 max-w-[150px] flex flex-col justify-between ${
         isCurrentTurn
           ? "theme-turn"
           : ""
       }`}
     >
-      {/* Keep the seat focused on its player and live status. */}
-      <div className="flex min-h-4 items-center justify-between text-[9px] text-[var(--mut)] font-medium leading-tight">
-        <span className="truncate">{playableCount !== null ? hintLabel(playableCount) : ""}</span>
-        {isDisconnected && (
-          <span className="text-[9px] text-[var(--rt)] px-1 rounded font-semibold uppercase tracking-wider">
-            Bot
-          </span>
-        )}
-      </div>
-
-      <div
-        className="font-bold text-xs text-[var(--tx)] truncate leading-tight"
-        title={name}
-      >
-        {name}
+      <div className="flex min-w-0 items-center justify-between gap-1">
+        <span className="min-w-0 truncate text-sm font-bold leading-tight text-[var(--tx)]" title={name}>
+          {name}
+        </span>
+        <span className="flex shrink-0 items-center gap-1">
+          {playableCount !== null && (
+            <span className="theme-seat-hint" aria-label={`${playableCount} playable cards`}>
+              {hintLabel(playableCount)}
+            </span>
+          )}
+          {isDisconnected && (
+            <span className="theme-seat-bot">Bot</span>
+          )}
+        </span>
       </div>
 
       <div className="flex items-center justify-between">
-        <span className="text-[11px] font-bold text-[var(--mut)] leading-tight">
-          {cardCount} <span className="text-[9px] font-normal text-[var(--mut)]">{cardCount === 1 ? "card" : "cards"}</span>
+        <span className="text-xs font-semibold leading-tight text-[var(--mut)]">
+          {cardCount} <span className="text-[10px] font-normal">{cardCount === 1 ? "card" : "cards"}</span>
         </span>
 
         {/* Small stack of card backs */}

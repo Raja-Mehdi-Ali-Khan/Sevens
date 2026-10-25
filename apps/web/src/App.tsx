@@ -26,7 +26,7 @@ export function App() {
     return (
       <div className="app-shell min-h-[100dvh] flex justify-center antialiased overflow-x-hidden">
         <Watermark />
-        <div className="app-content w-full max-w-[480px] min-h-[100dvh] relative flex flex-col overflow-hidden">
+        <div className="app-content table-app-content w-full max-w-[480px] h-[100dvh] min-h-0 relative flex flex-col overflow-hidden">
           <TableScreen
             view={tablePreviewView}
             lobby={tablePreviewLobby}
@@ -172,8 +172,10 @@ function ConnectedApp() {
     <div className="app-shell min-h-[100dvh] flex justify-center antialiased overflow-x-hidden">
       {screen !== "home" && <Watermark />}
       <div
-        className={`app-content w-full max-w-[480px] min-h-[100dvh] relative flex flex-col ${
-          screen === "home" ? "overflow-visible" : "overflow-hidden"
+        className={`app-content w-full max-w-[480px] relative flex flex-col ${
+          screen === "table"
+            ? "table-app-content h-[100dvh] min-h-0 overflow-hidden"
+            : `min-h-[100dvh] ${screen === "home" ? "overflow-visible" : "overflow-hidden"}`
         }`}
       >
         {screen !== "home" && (

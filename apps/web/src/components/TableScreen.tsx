@@ -185,13 +185,12 @@ export function TableScreen({
         )}
       </header>
 
-      {/* (b) Opponents Row: ONE row of three compact chips (Left, Across/Top, Right) */}
+      {/* (b) Opponents */}
       <section className="table-section-fixed table-opponents flex items-stretch justify-between gap-1.5 px-0.5">
         {opponents.map(({ seat }) => {
           return (
             <PlayerSeat
               key={seat}
-              seat={seat}
               name={getPlayerName(seat)}
               cardCount={view.handCounts[seat] ?? 0}
               playableCount={view.playableCounts[seat] ?? null}
