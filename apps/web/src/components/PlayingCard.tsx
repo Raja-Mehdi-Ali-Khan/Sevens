@@ -34,7 +34,7 @@ export function PlayingCard({
 
   // Card size classes
   const sizeClasses = {
-    tile: "w-[26px] h-[36px] min-w-[26px] sm:w-[28px] sm:h-[40px] text-[10px] sm:text-xs",
+    tile: "w-full h-[18px] sm:h-[20px] text-[10px] sm:text-xs",
     sm: "w-[32px] h-[46px] min-w-[32px]",
     md: "w-[56px] h-[81px] min-w-[56px]",
     lg: "w-[64px] h-[93px] min-w-[64px]",
@@ -48,13 +48,13 @@ export function PlayingCard({
     : "shadow-2xs";
 
   const recentClasses = isRecent
-    ? "ring-2 ring-amber-400 shadow-amber-300/50 shadow-md animate-pulse"
+    ? "ring-2 ring-amber-400 shadow-amber-300/50 shadow-md animate-pulse bg-amber-50"
     : "";
 
   // Common wrapper styles
   const baseClasses = `relative select-none touch-manipulation rounded flex items-center justify-center overflow-hidden transition-all ${sizeClasses} ${stateClasses} ${recentClasses} ${className}`;
 
-  // 'tile' mode is drawn with CSS and text for readability at small sizes
+  // 'tile' mode is drawn with CSS and text for readability in the vertical suit columns
   if (size === "tile") {
     if (isBack) {
       const tileContent = (
@@ -88,10 +88,10 @@ export function PlayingCard({
 
     const tileContent = (
       <div
-        className={`w-full h-full bg-white border border-zinc-300 rounded flex flex-col items-center justify-center font-bold leading-none ${textColor}`}
+        className={`w-full h-full bg-white border border-zinc-300 rounded flex items-center justify-center gap-1 font-bold leading-none ${textColor}`}
       >
-        <span className="font-semibold tracking-tighter">{formatRank(card.rank)}</span>
-        <span className="text-[10px] leading-none -mt-0.5">{formatSuit(card.suit)}</span>
+        <span className="font-semibold tracking-tight">{formatRank(card.rank)}</span>
+        <span className="text-[10px] sm:text-[11px] leading-none">{formatSuit(card.suit)}</span>
       </div>
     );
 
