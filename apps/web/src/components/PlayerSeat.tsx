@@ -8,7 +8,6 @@ interface PlayerSeatProps {
   playableCount: number | null;
   isCurrentTurn: boolean;
   isDisconnected: boolean;
-  positionLabel: string;
 }
 
 export function PlayerSeat({
@@ -18,7 +17,6 @@ export function PlayerSeat({
   playableCount,
   isCurrentTurn,
   isDisconnected,
-  positionLabel,
 }: PlayerSeatProps) {
   // Keep the opponent stack small while retaining a visible card-count cue.
   const stackCount = Math.min(Math.max(cardCount, 0), 5);
@@ -31,40 +29,26 @@ export function PlayerSeat({
           : ""
       }`}
     >
-      {/* Top line: position label and offline badge */}
-      <div className="flex items-center justify-between text-[10px] text-[var(--mut)] font-medium leading-tight">
-        <span className="truncate">{positionLabel}</span>
+      {/* Keep the seat focused on its player and live status. */}
+      <div className="flex min-h-4 items-center justify-between text-[9px] text-[var(--mut)] font-medium leading-tight">
+        <span className="truncate">{playableCount !== null ? hintLabel(playableCount) : ""}</span>
         {isDisconnected && (
-          <span className="text-[9px] text-[var(--rt)] px-1 py-0.2 rounded font-semibold uppercase tracking-wider">
+          <span className="text-[9px] text-[var(--rt)] px-1 rounded font-semibold uppercase tracking-wider">
             Bot
           </span>
         )}
       </div>
 
-      {/* Middle line: Player Name */}
       <div
-        className="font-bold text-sm text-[var(--tx)] truncate leading-tight my-0.5"
+        className="font-bold text-xs text-[var(--tx)] truncate leading-tight"
         title={name}
       >
         {name}
       </div>
 
-      {/* Reserve one line so hints do not change the opponents row height. */}
-      <div className="mt-0.5 h-4 flex items-center justify-end">
-        {playableCount !== null && (
-          <span
-            aria-label={`${playableCount} cards playable as of their last turn`}
-            className="theme-badge max-w-full truncate whitespace-nowrap leading-4"
-          >
-            {hintLabel(playableCount)}
-          </span>
-        )}
-      </div>
-
-      {/* Bottom line: Card count and mini stack of card backs */}
-      <div className="flex items-center justify-between mt-0.5">
-        <span className="text-xs font-bold text-[var(--mut)] leading-tight">
-          {cardCount} <span className="text-[10px] font-normal text-[var(--mut)]">{cardCount === 1 ? "cd" : "cds"}</span>
+      <div className="flex items-center justify-between">
+        <span className="text-[11px] font-bold text-[var(--mut)] leading-tight">
+          {cardCount} <span className="text-[9px] font-normal text-[var(--mut)]">{cardCount === 1 ? "card" : "cards"}</span>
         </span>
 
         {/* Small stack of card backs */}

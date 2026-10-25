@@ -137,9 +137,7 @@ export function TableScreen({
 
       {/* (b) Opponents Row: ONE row of three compact chips (Left, Across/Top, Right) */}
       <section className="table-section-fixed table-opponents flex items-stretch justify-between gap-1.5 px-0.5">
-        {opponents.map(({ seat, position }) => {
-          const positionLabel =
-            position === "left" ? "Left (+3)" : position === "top" ? "Across (+2)" : "Right (+1)";
+        {opponents.map(({ seat }) => {
           return (
             <PlayerSeat
               key={seat}
@@ -149,7 +147,6 @@ export function TableScreen({
               playableCount={view.playableCounts[seat] ?? null}
               isCurrentTurn={view.currentSeat === seat}
               isDisconnected={isPlayerDisconnected(seat)}
-              positionLabel={positionLabel}
             />
           );
         })}

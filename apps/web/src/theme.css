@@ -223,7 +223,8 @@
   border: 1px solid var(--edge);
   border-radius: 12px;
   background: var(--chip);
-  padding: var(--chip-padding, 10px);
+  padding: var(--chip-padding, 6px 8px);
+  gap: 3px;
 }
 
 .theme-mini-back {
@@ -304,14 +305,14 @@
 
 .table-screen {
   --tile-width: 36px;
-  --tile-height: 46px;
-  --tile-step: 23px;
+  --tile-height: 42px;
+  --tile-step: 21px;
   --hand-card-width: 78px;
   --hand-card-height: 108px;
-  --chip-padding: 10px;
-  --section-gap: 12px;
-  --opponents-height: 108px;
-  --board-gap-extra: 2px;
+  --chip-padding: 6px 8px;
+  --section-gap: 8px;
+  --opponents-height: 78px;
+  --board-gap-extra: 0px;
   --hand-row-overlap: 40px;
   box-sizing: border-box;
   width: 100%;
@@ -337,14 +338,16 @@
   flex: 1 1 auto;
   flex-direction: column;
   min-height: 0;
-  overflow-y: auto;
+  overflow-y: hidden;
   overflow-x: hidden;
-  overscroll-behavior: contain;
 }
 
 .table-board-region > .theme-board {
-  flex: none;
+  flex: 0 1 auto;
+  min-height: 0;
+  max-height: 100%;
   margin-block: auto;
+  overflow: hidden;
 }
 
 .table-status {
@@ -374,9 +377,10 @@
 
 .table-suit-stack {
   display: grid;
-  grid-template-rows: repeat(13, var(--tile-step, 23px));
+  grid-template-rows: repeat(13, minmax(0, var(--tile-step, 21px)));
   justify-items: center;
-  min-height: calc(12 * var(--tile-step, 23px) + var(--tile-height, 46px));
+  height: calc(12 * var(--tile-step, 21px) + var(--tile-height, 42px));
+  min-height: 0;
 }
 
 .theme-table-placeholder {
@@ -393,45 +397,45 @@
 
 @media (max-height: 760px) {
   .table-screen {
-    --tile-width: 32px;
-    --tile-height: 42px;
-    --tile-step: 21px;
+    --tile-width: 30px;
+    --tile-height: 38px;
+    --tile-step: 19px;
     --hand-card-width: 70px;
     --hand-card-height: 98px;
     --chip-padding: 8px;
     --section-gap: 10px;
-    --opponents-height: 100px;
-    --board-gap-extra: 4px;
+    --opponents-height: 72px;
+    --board-gap-extra: 0px;
     --hand-row-overlap: 36px;
   }
 }
 
 @media (max-height: 680px) {
   .table-screen {
-    --tile-width: 28px;
-    --tile-height: 38px;
-    --tile-step: 19px;
+    --tile-width: 26px;
+    --tile-height: 34px;
+    --tile-step: 17px;
     --hand-card-width: 62px;
     --hand-card-height: 86px;
     --chip-padding: 6px;
     --section-gap: 8px;
-    --opponents-height: 96px;
-    --board-gap-extra: 6px;
+    --opponents-height: 66px;
+    --board-gap-extra: 0px;
     --hand-row-overlap: 30px;
   }
 }
 
 @media (max-height: 600px) {
   .table-screen {
-    --tile-width: 24px;
-    --tile-height: 32px;
-    --tile-step: 16px;
+    --tile-width: 22px;
+    --tile-height: 30px;
+    --tile-step: 15px;
     --hand-card-width: 54px;
     --hand-card-height: 76px;
     --chip-padding: 4px;
     --section-gap: 8px;
-    --opponents-height: 80px;
-    --board-gap-extra: 6px;
+    --opponents-height: 60px;
+    --board-gap-extra: 0px;
     --hand-row-overlap: 24px;
   }
 
