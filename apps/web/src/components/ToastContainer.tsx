@@ -9,17 +9,20 @@ export function ToastContainer({ toasts, onDismiss }: ToastContainerProps) {
   if (toasts.length === 0) return null;
 
   return (
-    <div className="fixed top-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full px-4 pointer-events-none">
+    <div className="fixed top-12 left-2 right-2 max-w-[440px] mx-auto z-40 flex flex-col gap-1.5 pointer-events-none">
       {toasts.map((toast) => (
         <div
           key={toast.id}
-          className="bg-zinc-900/95 text-white px-4 py-2.5 rounded shadow-lg text-sm border border-zinc-700 pointer-events-auto flex items-center justify-between transition-all"
+          className="bg-zinc-900/95 text-white px-3 py-2 rounded-lg shadow-lg border border-zinc-700 pointer-events-auto flex items-center justify-between gap-2"
         >
-          <span>{toast.message}</span>
+          <span className="text-xs leading-snug line-clamp-2 flex-1">
+            {toast.message}
+          </span>
           <button
+            type="button"
             onClick={() => onDismiss(toast.id)}
-            className="ml-3 text-zinc-400 hover:text-white font-bold"
-            title="Dismiss toast"
+            className="shrink-0 w-7 h-7 flex items-center justify-center text-zinc-400 hover:text-white text-base font-bold touch-manipulation cursor-pointer"
+            aria-label="Dismiss toast"
           >
             &times;
           </button>

@@ -15,40 +15,54 @@ export function ConnectionBanner({
 }: ConnectionBannerProps) {
   if (serverError) {
     return (
-      <div className="bg-red-600 text-white px-4 py-2 text-sm flex items-center justify-between shadow-sm">
-        <span>{serverError}</span>
+      <aside
+        aria-live="assertive"
+        className="fixed top-0 left-0 right-0 z-50 max-w-[480px] mx-auto bg-red-600 text-white px-3 h-7 flex items-center justify-between text-xs font-medium shadow-md"
+      >
+        <span className="truncate">{serverError}</span>
         <button
+          type="button"
           onClick={onClearError}
-          className="ml-4 font-bold hover:opacity-80 text-lg leading-none"
+          className="ml-2 w-6 h-6 flex items-center justify-center font-bold hover:opacity-80 text-sm leading-none cursor-pointer touch-manipulation"
           title="Dismiss"
+          aria-label="Dismiss error"
         >
           &times;
         </button>
-      </div>
+      </aside>
     );
   }
 
   if (status === "reconnecting") {
     return (
-      <div className="bg-amber-500 text-white px-4 py-2 text-sm text-center font-medium animate-pulse shadow-sm">
+      <aside
+        aria-live="polite"
+        className="fixed top-0 left-0 right-0 z-50 max-w-[480px] mx-auto bg-amber-500 text-white px-3 h-7 flex items-center justify-center text-xs font-medium animate-pulse shadow-md"
+      >
         {message || "Reconnecting to server..."}
-      </div>
+      </aside>
     );
   }
 
   if (status === "connecting") {
     return (
-      <div className="bg-blue-600 text-white px-4 py-2 text-sm text-center font-medium shadow-sm">
+      <aside
+        aria-live="polite"
+        className="fixed top-0 left-0 right-0 z-50 max-w-[480px] mx-auto bg-blue-600 text-white px-3 h-7 flex items-center justify-center text-xs font-medium shadow-md"
+      >
         {message || "Connecting to server..."}
-      </div>
+      </aside>
     );
   }
 
   if (status === "disconnected" && message) {
     return (
-      <div className="bg-zinc-700 text-white px-4 py-2 text-sm text-center font-medium shadow-sm">
+      <aside
+        aria-live="polite"
+        className="fixed top-0 left-0 right-0 z-50 max-w-[480px] mx-auto bg-zinc-700 text-white px-3 h-7 flex items-center justify-center text-xs font-medium shadow-md"
+      >
         {message}
-      </div>
+      </aside>
     );
   }
 

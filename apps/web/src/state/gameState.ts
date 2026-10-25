@@ -1,4 +1,4 @@
-import type { GameEvent, PlayerView, Seat } from "@cardgame/engine";
+import type { CardId, GameEvent, PlayerView, Seat } from "@cardgame/engine";
 import { formatCard } from "../lib/cards";
 import type { ConnectionStatus, LobbyMessage } from "../net/client";
 
@@ -19,6 +19,7 @@ export interface AppState {
   lobby: LobbyMessage | null;
   view: PlayerView | null;
   toasts: Toast[];
+  recentCardId: CardId | null;
 }
 
 export const initialAppState: AppState = {
@@ -30,6 +31,7 @@ export const initialAppState: AppState = {
   lobby: null,
   view: null,
   toasts: [],
+  recentCardId: null,
 };
 
 export type AppAction =
@@ -40,6 +42,7 @@ export type AppAction =
   | { type: "SET_VIEW"; view: PlayerView }
   | { type: "ADD_TOAST"; toast: Toast }
   | { type: "REMOVE_TOAST"; id: string }
+  | { type: "SET_RECENT_CARD"; cardId: CardId | null }
   | { type: "RESET" };
 
 export function appReducer(state: AppState, action: AppAction): AppState {
@@ -102,6 +105,12 @@ export function appReducer(state: AppState, action: AppAction): AppState {
       return {
         ...state,
         toasts: state.toasts.filter((t) => t.id !== action.id),
+      };
+
+    case "SET_RECENT_CARD":
+      return {
+        ...state,
+        recentCardId: action.cardId,
       };
 
     case "RESET":

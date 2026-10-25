@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Card } from "@cardgame/engine";
-import { formatCard, formatCardId, formatRank, formatSuit, isRedSuit, sortHand } from "./cards";
+import { cardAltText, formatCard, formatCardId, formatRank, formatSuit, isRedSuit, sortHand } from "./cards";
 
 describe("cards", () => {
   it("formats suit symbols and redness", () => {
@@ -32,6 +32,15 @@ describe("cards", () => {
     expect(formatCardId("7H")).toBe("7♥");
     expect(formatCardId("1S")).toBe("A♠");
     expect(formatCardId("12C")).toBe("Q♣");
+  });
+
+  it("provides human-readable cardAltText for accessibility and labels", () => {
+    expect(cardAltText("7H")).toBe("7 of hearts");
+    expect(cardAltText("1S")).toBe("Ace of spades");
+    expect(cardAltText("11C")).toBe("Jack of clubs");
+    expect(cardAltText("12D")).toBe("Queen of diamonds");
+    expect(cardAltText("13H")).toBe("King of hearts");
+    expect(cardAltText("back")).toBe("Card back");
   });
 
   it("purely sorts hand by suit then rank without mutating input", () => {

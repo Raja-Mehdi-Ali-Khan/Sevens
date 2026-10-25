@@ -28,8 +28,17 @@ Do phases in order. Do not start a phase until the previous one is green (`npm r
 - [x] Four browser tabs can play a full game against the local server
 **Done when:** a full 7-round game is playable in 4 tabs.
 
-## Phase 4: UI polish  Agent: Antigravity
-- [ ] Table layout, card art, animations, mobile layout, sound toggle (optional)
+## Phase 4a: Mobile layout + card art  Agent: Antigravity
+- [x] Mobile-first layout for 360px-430px portrait phones, safe areas, centered column on desktop
+- [x] Real card faces with optimized vector SVG assets (Byron Knoll WTFPL / AustinGabriel CC0)
+- [x] PlayingCard size system ('tile', 'sm', 'md', 'lg') with CSS fallbacks and >= 44x44px touch targets
+- [x] Overlapping two-row hand layout with >= 40px exposed card width
+- [x] Opponents single-row compact chips and inline expandable scores panel
+- [x] SuitTable tile layout with recent-card highlight
+- [x] Screen wake lock and visibilitychange reconnection handling
+
+## Phase 4b: Animations  Agent: Antigravity
+- [ ] Card play and deal animations, transitions, sound toggle (optional)
 
 ## Phase 5: Hardening and deploy  Agent: both
 - [ ] Rate limiting, input limits, error screens, reconnect UX
