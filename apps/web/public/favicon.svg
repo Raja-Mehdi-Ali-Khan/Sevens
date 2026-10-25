@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="620" viewBox="0 0 1000 620">
+  <rect width="1000" height="620" rx="34" fill="#071114" />
+  <text x="500" y="250" text-anchor="middle" font-size="180" fill="#E8BD62">♠ ♥ ♦ ♣</text>
+  <text x="500" y="410" text-anchor="middle" font-family="Georgia,serif" font-weight="bold" font-size="130" letter-spacing="2" fill="#E8BD62">SEVENS</text>
+  <path d="M260 455 H435 M565 455 H740" stroke="#E8BD62" stroke-width="4" />
+  <text x="500" y="510" text-anchor="middle" font-family="Arial,sans-serif" font-size="17" letter-spacing="7" fill="#D8B66B">PLAY YOUR HAND</text>
+</svg>
