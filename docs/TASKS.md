@@ -23,9 +23,9 @@ Do phases in order. Do not start a phase until the previous one is green (`npm r
 **Done when:** the integration test passes and a manual run with 4 browser-less clients finishes a game.
 
 ## Phase 3: Thin client (`apps/web`)  Agent: Antigravity
-- [ ] Home, Lobby, Table, Round summary, Game over screens; plain styling
-- [ ] Highlights `legalCards`, shows auto-play and no-playable-card messages
-- [ ] Four browser tabs can play a full game against the local server
+- [x] Home, Lobby, Table, Round summary, Game over screens; plain styling
+- [x] Highlights `legalCards`, shows auto-play and no-playable-card messages
+- [x] Four browser tabs can play a full game against the local server
 **Done when:** a full 7-round game is playable in 4 tabs.
 
 ## Phase 4: UI polish  Agent: Antigravity
