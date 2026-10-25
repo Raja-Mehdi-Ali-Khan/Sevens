@@ -187,15 +187,27 @@ export class NetworkClient {
 
   async leave(): Promise<void> {
     this.clearReconnectionToken();
-    if (this.currentRoom) {
+    const room = this.currentRoom;
+    this.currentRoom = null;
+    this.callbacks?.onStatusChange("idle");
+
+    if (room) {
       try {
-        await this.currentRoom.leave(true);
+        room.removeAllListeners();
+        await Promise.race([
+          room.leave(true),
+          new Promise((resolve) => setTimeout(resolve, 300)),
+        ]);
       } catch {
         // Ignore leave errors
+      } finally {
+        try {
+          room.connection?.close();
+        } catch {
+          // Ignore
+        }
       }
-      this.currentRoom = null;
     }
-    this.callbacks?.onStatusChange("idle");
   }
 }
 

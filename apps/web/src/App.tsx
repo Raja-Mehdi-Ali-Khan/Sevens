@@ -114,9 +114,9 @@ export function App() {
     netClient.sendPlay(cardId);
   };
 
-  const handleLeaveRoom = async () => {
-    await netClient.leave();
+  const handleLeaveRoom = () => {
     dispatch({ type: "RESET" });
+    void netClient.leave();
   };
 
   const screen = getScreenName(state);
