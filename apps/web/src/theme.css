@@ -330,9 +330,9 @@
 }
 
 .table-screen {
-  --tile-width: 36px;
-  --tile-height: 42px;
-  --tile-step: 21px;
+  --tile-width: 44px;
+  --tile-height: 54px;
+  --tile-step: 18px;
   --hand-card-width: 78px;
   --hand-card-height: 108px;
   --chip-padding: 6px 8px;
@@ -423,9 +423,9 @@
 
 @media (max-height: 760px) {
   .table-screen {
-    --tile-width: 30px;
-    --tile-height: 38px;
-    --tile-step: 19px;
+    --tile-width: 40px;
+    --tile-height: 48px;
+    --tile-step: 16px;
     --hand-card-width: 70px;
     --hand-card-height: 98px;
     --chip-padding: 8px;
@@ -438,9 +438,9 @@
 
 @media (max-height: 680px) {
   .table-screen {
-    --tile-width: 26px;
-    --tile-height: 34px;
-    --tile-step: 17px;
+    --tile-width: 36px;
+    --tile-height: 44px;
+    --tile-step: 14px;
     --hand-card-width: 62px;
     --hand-card-height: 86px;
     --chip-padding: 6px;
@@ -453,9 +453,9 @@
 
 @media (max-height: 600px) {
   .table-screen {
-    --tile-width: 22px;
-    --tile-height: 30px;
-    --tile-step: 15px;
+    --tile-width: 32px;
+    --tile-height: 40px;
+    --tile-step: 12px;
     --hand-card-width: 54px;
     --hand-card-height: 76px;
     --chip-padding: 4px;
@@ -467,6 +467,20 @@
 
   .table-mini-backs {
     display: none;
+  }
+}
+
+.table-fullscreen-button {
+  display: none;
+}
+
+.table-screen:fullscreen {
+  background: #0a0a0c;
+}
+
+@media (max-width: 640px) {
+  .table-fullscreen-button {
+    display: flex;
   }
 }
 

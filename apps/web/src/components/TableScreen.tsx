@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { CardId, PlayerView, Seat } from "@cardgame/engine";
 import { getOpponents } from "../lib/layout";
 import type { LobbyMessage } from "../net/client";
@@ -22,6 +22,9 @@ export function TableScreen({
   onLeaveRoom,
 }: TableScreenProps) {
   const [scoresExpanded, setScoresExpanded] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [fullscreenMessage, setFullscreenMessage] = useState<string | null>(null);
+  const tableScreenRef = useRef<HTMLDivElement>(null);
   const mySeat = view.seat;
   const opponents = getOpponents(mySeat);
 
@@ -75,8 +78,38 @@ export function TableScreen({
   const myTotal = view.totals[mySeat] ?? 0;
   const allSeats: Seat[] = [0, 1, 2, 3];
 
+  useEffect(() => {
+    const syncFullscreenState = () => {
+      const active = document.fullscreenElement === tableScreenRef.current;
+      setIsFullscreen(active);
+      if (active) setFullscreenMessage(null);
+    };
+
+    document.addEventListener("fullscreenchange", syncFullscreenState);
+    return () => document.removeEventListener("fullscreenchange", syncFullscreenState);
+  }, []);
+
+  const toggleFullscreen = async () => {
+    try {
+      if (document.fullscreenElement) {
+        await document.exitFullscreen();
+        return;
+      }
+
+      const screen = tableScreenRef.current;
+      if (!screen?.requestFullscreen) {
+        setFullscreenMessage("Fullscreen isn't supported by this browser. Add the game to your Home Screen to hide browser controls.");
+        return;
+      }
+
+      await screen.requestFullscreen({ navigationUI: "hide" });
+    } catch {
+      setFullscreenMessage("Fullscreen couldn't start. Try adding the game to your Home Screen for an app-like view.");
+    }
+  };
+
   return (
-    <div className="table-screen bg-transparent flex flex-col overflow-hidden select-none">
+    <div ref={tableScreenRef} className="table-screen bg-transparent flex flex-col overflow-hidden select-none">
       {/* (a) Compact Header */}
       <header className="table-section-fixed theme-panel relative rounded-xl px-2.5 py-1.5 z-30">
         <div className="flex items-center justify-between gap-1">
@@ -110,7 +143,24 @@ export function TableScreen({
           >
             Leave
           </button>
+
+          <button
+            type="button"
+            onClick={() => void toggleFullscreen()}
+            className="theme-button-secondary table-fullscreen-button min-h-[36px] min-w-[36px] p-0 items-center justify-center text-lg cursor-pointer touch-manipulation"
+            aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+            aria-pressed={isFullscreen}
+            title={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
+          >
+            {isFullscreen ? "Exit" : "Full"}
+          </button>
         </div>
+
+        {fullscreenMessage && (
+          <div role="status" className="mt-2 rounded-lg border border-[var(--edge)] bg-[var(--chip)] px-2 py-1.5 text-xs text-[var(--mut)]">
+            {fullscreenMessage}
+          </div>
+        )}
 
         {/* Inline Expanded Scores Panel */}
         {scoresExpanded && (
