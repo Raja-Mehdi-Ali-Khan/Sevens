@@ -325,8 +325,8 @@
 }
 
 .table-screen {
-  --tile-width: 56px;
-  --tile-height: 68px;
+  --tile-width: 64px;
+  --tile-height: 78px;
   --tile-step: 16px;
   --hand-card-width: 78px;
   --hand-card-height: 108px;
@@ -418,8 +418,8 @@
 
 @media (max-height: 760px) {
   .table-screen {
-    --tile-width: 52px;
-    --tile-height: 64px;
+    --tile-width: 60px;
+    --tile-height: 74px;
     --tile-step: 14px;
     --hand-card-width: 70px;
     --hand-card-height: 98px;
@@ -433,8 +433,8 @@
 
 @media (max-height: 680px) {
   .table-screen {
-    --tile-width: 48px;
-    --tile-height: 60px;
+    --tile-width: 56px;
+    --tile-height: 68px;
     --tile-step: 12px;
     --hand-card-width: 62px;
     --hand-card-height: 86px;
@@ -448,8 +448,8 @@
 
 @media (max-height: 600px) {
   .table-screen {
-    --tile-width: 44px;
-    --tile-height: 56px;
+    --tile-width: 52px;
+    --tile-height: 64px;
     --tile-step: 12px;
     --hand-card-width: 54px;
     --hand-card-height: 76px;
