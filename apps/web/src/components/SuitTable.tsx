@@ -8,14 +8,14 @@ interface SuitTableProps {
 }
 
 export function SuitTable({ table, recentCardId }: SuitTableProps) {
-  // 12 steps across the stack height for 13 ranks
-  // On mobile: 320px stack, 76px card -> step = (320 - 76) / 12 = 20.33px
-  const step = 20.33;
+  // 12 steps across the stack height for 13 ranks:
+  // Mobile: 372px stack height, 94px card -> step = (372 - 94) / 12 = 23.17px
+  const step = 23.17;
 
   return (
-    <div className="w-full max-w-sm mx-auto bg-emerald-950/25 border border-emerald-900/35 rounded-2xl p-1.5 sm:p-2 shadow-inner">
-      {/* 4 vertical suit columns */}
-      <div className="grid grid-cols-4 gap-1 sm:gap-1.5">
+    <div className="w-full max-w-[440px] mx-auto bg-emerald-950/25 border border-emerald-900/35 rounded-2xl p-1 sm:p-1.5 shadow-inner">
+      {/* 4 vertical suit columns with tight gaps */}
+      <div className="grid grid-cols-4 gap-0.5 sm:gap-1">
         {SUITS.map((suit: Suit) => {
           const run = table[suit];
           const isRed = isRedSuit(suit);
@@ -24,7 +24,7 @@ export function SuitTable({ table, recentCardId }: SuitTableProps) {
           return (
             <div
               key={suit}
-              className="flex flex-col items-center bg-emerald-950/15 rounded-xl p-0.5 sm:p-1 border border-emerald-900/25 min-w-0"
+              className="flex flex-col items-center bg-emerald-950/15 rounded-xl p-0.5 border border-emerald-900/25 min-w-0"
             >
               {/* Suit Header */}
               <div
@@ -34,9 +34,9 @@ export function SuitTable({ table, recentCardId }: SuitTableProps) {
                 <span>{formatSuit(suit)}</span>
               </div>
 
-              {/* 13-rank stacked card area */}
+              {/* 13-rank tall stacked card area */}
               <div
-                className="relative w-full h-[320px] flex justify-center"
+                className="relative w-full h-[372px] flex justify-center"
                 aria-label={`Played cards for ${suit}`}
               >
                 {RANKS.map((rank: Rank) => {
@@ -65,20 +65,20 @@ export function SuitTable({ table, recentCardId }: SuitTableProps) {
                     );
                   }
 
-                  // If suit has not been opened yet, show prominent foundation target at rank 7
+                  // If suit has not been opened yet, show prominent foundation target card at rank 7
                   if (run === null && isSeven) {
                     return (
                       <div
                         key={id}
-                        className="absolute left-1/2 -translate-x-1/2 w-[52px] h-[76px] sm:w-[58px] sm:h-[84px] rounded border-2 border-dashed border-amber-400/90 bg-amber-50/40 flex flex-col items-center justify-center select-none shadow-2xs"
+                        className="absolute left-1/2 -translate-x-1/2 w-[66px] h-[94px] sm:w-[74px] sm:h-[106px] rounded border-2 border-dashed border-amber-400/90 bg-amber-50/45 flex flex-col items-center justify-center select-none shadow-2xs"
                         style={{
                           top: `${topOffset}px`,
                           zIndex: 5,
                         }}
                         aria-label={`Play 7 of ${suit} here to open suit`}
                       >
-                        <span className="text-sm font-black text-amber-700 leading-none">7</span>
-                        <span className={`text-xs font-bold leading-none mt-0.5 ${suitColor}`}>
+                        <span className="text-base font-black text-amber-700 leading-none">7</span>
+                        <span className={`text-sm font-bold leading-none mt-1 ${suitColor}`}>
                           {formatSuit(suit)}
                         </span>
                       </div>
@@ -89,7 +89,7 @@ export function SuitTable({ table, recentCardId }: SuitTableProps) {
                   return (
                     <div
                       key={id}
-                      className="absolute left-1/2 -translate-x-1/2 w-[50px] sm:w-[56px] h-[19px] rounded border border-dashed border-zinc-300/35 bg-white/10 flex items-center justify-center text-[10px] font-mono text-zinc-400/50 select-none pointer-events-none"
+                      className="absolute left-1/2 -translate-x-1/2 w-[64px] sm:w-[72px] h-[21px] rounded border border-dashed border-zinc-300/35 bg-white/10 flex items-center justify-center text-[10px] font-mono text-zinc-400/50 select-none pointer-events-none"
                       style={{
                         top: `${topOffset}px`,
                         zIndex: 0,

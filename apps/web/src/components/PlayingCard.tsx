@@ -35,7 +35,7 @@ export function PlayingCard({
   // Card size classes
   const sizeClasses = {
     tile: "w-full h-[18px] sm:h-[20px] text-[10px] sm:text-xs",
-    table: "w-[52px] h-[76px] sm:w-[58px] sm:h-[84px] text-xs",
+    table: "w-[66px] h-[94px] sm:w-[74px] sm:h-[106px] text-xs sm:text-sm",
     sm: "w-[32px] h-[46px] min-w-[32px]",
     md: "w-[56px] h-[81px] min-w-[56px]",
     lg: "w-[64px] h-[93px] min-w-[64px]",
