@@ -1,0 +1,21 @@
+services:
+  - type: web
+    runtime: node
+    name: sevens-server
+    plan: free
+    region: singapore
+    buildCommand: npm ci && npm run build:server
+    startCommand: npm run start:server
+    healthCheckPath: /health
+    envVars:
+      - key: CLIENT_ORIGIN
+        sync: false
+
+  - type: web
+    runtime: static
+    name: sevens-web
+    buildCommand: npm ci && npm run build -w @cardgame/web
+    staticPublishPath: apps/web/dist
+    envVars:
+      - key: VITE_SERVER_URL
+        sync: false
