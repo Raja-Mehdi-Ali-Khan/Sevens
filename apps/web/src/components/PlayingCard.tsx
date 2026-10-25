@@ -49,7 +49,7 @@ export function PlayingCard({
     : "shadow-2xs";
 
   const recentClasses = isRecent
-    ? "ring-2 ring-amber-400 shadow-amber-300/50 shadow-md animate-pulse bg-amber-50"
+    ? "ring-2 ring-amber-400 shadow-sm"
     : "";
 
   // Common wrapper styles
