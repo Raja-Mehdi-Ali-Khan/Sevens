@@ -288,15 +288,15 @@
 
 .theme-table-placeholder {
   display: flex;
-  width: var(--tile-width, 36px);
-  height: var(--tile-step, 23px);
+  width: calc(var(--tile-width, 36px) - 6px);
+  height: calc(var(--tile-step, 23px) - 2px);
   align-items: center;
   justify-content: center;
   border: 1px dashed var(--edge);
   border-radius: 6px;
   background: var(--tile);
   color: var(--mut);
-  font-size: 14px;
+  font-size: 12px;
   pointer-events: none;
 }
 
