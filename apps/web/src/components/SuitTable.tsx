@@ -41,23 +41,6 @@ export function SuitTable({ table, recentCardId }: SuitTableProps) {
                   const isRecent = recentCardId === id;
                   const isSeven = rank === 7;
                   if (isFilled) {
-                    const isRunEnd = run !== null && (rank === run.low || rank === run.high);
-
-                    if (!isRunEnd) {
-                      return (
-                        <div
-                          key={id}
-                          className={`theme-table-center-card ${isRed ? "theme-table-tile-red" : ""} ${isRecent ? "theme-table-tile-recent" : ""}`}
-                          style={{ gridRow: rank, zIndex: isRecent ? 1000 : 200 + rank }}
-                          aria-label={`${formatRank(rank)} of ${suit}`}
-                          title={`${formatRank(rank)} of ${suit}`}
-                        >
-                          <span>{formatRank(rank)}</span>
-                          <span>{formatSuit(suit)}</span>
-                        </div>
-                      );
-                    }
-
                     return (
                       <PlayingCard
                         key={id}
