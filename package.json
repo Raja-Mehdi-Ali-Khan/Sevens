@@ -13,6 +13,8 @@
     "typecheck": "npm run typecheck --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
     "dev:server": "npm run dev -w @cardgame/server",
-    "dev:web": "npm run dev -w @cardgame/web"
+    "dev:web": "npm run dev -w @cardgame/web",
+    "build:server": "npm run typecheck -w @cardgame/server",
+    "start:server": "npm run start -w @cardgame/server"
   }
 }
