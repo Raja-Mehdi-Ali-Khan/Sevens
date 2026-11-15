@@ -34,6 +34,19 @@ When exploring the repository, useful starting points are:
 | Availability | Whether a system can serve requests when needed. | Whether players can reconnect and continue after a network drop. |
 | Durability | Whether saved information survives process or machine failure. | This version has low game-state durability because rooms live in memory. |
 
+### Follow one move through the whole system
+
+Keep this small story in mind as you read the rest of the guide. Four friends are in a room. It is Mira's turn, the table has opened hearts at 7, and Mira holds the 8 of hearts. She taps that card.
+
+1. **The browser** knows Mira tapped `8H`. It sends the intent `play { card: "8H" }`. It does not tell the server, "I have already changed the table."
+2. **The room server** knows which connected session belongs to Mira's seat. It checks that this is a well-formed message and that Mira has not sent too many messages too quickly.
+3. **The game session** checks that Mira is the current player and that the game is in a phase where a card can be played.
+4. **The engine** checks the actual rules. Since hearts are open through 7, `8H` is legal. It returns a new state with `8H` on the table and removed from Mira's hand.
+5. **The server** keeps that new state as the authoritative one, then creates four player-specific views. Mira's view contains Mira's hand; the other views contain each other player's own hand.
+6. **The browsers** render the new views. They may show a short "Mira played 8H" event, but the event is only presentation; the view is the current state.
+
+If Mira had sent `9H`, the engine would reject it because the current heart run ends at 7. If Mira's phone lost connection after the server accepted `8H`, reconnecting should show the latest view with `8H` already on the table. This single action touches requirements, trust, protocol design, pure rules, state ownership, privacy, and recovery—the same ideas recur throughout the guide.
+
 ---
 
 ## 1. Start with requirements, not technology
@@ -78,6 +91,17 @@ Some of these compete. Storing every room only in memory keeps the design and co
 
 The current project has timeouts and tests, but does not define a production service-level objective (SLO) or collect metrics to prove one. That is normal for a first release; it is also a useful next step before advertising reliability guarantees.
 
+The diagram below shows how a user need becomes concrete engineering work. For example, "friends must see the same move" leads to one server authority, a play message, a shared state transition, and tests that verify every seat sees the accepted move.
+
+```mermaid
+flowchart LR
+    NEED[User need\nFriends share one legal game] --> QUALITY[Quality goals\nCorrect, private, responsive]
+    QUALITY --> BOUNDARY[Component boundary\nServer owns live state]
+    BOUNDARY --> CONTRACT[Protocol\nClient sends play intent]
+    CONTRACT --> RULE[Engine transition\nValidate and return next state]
+    RULE --> CHECK[Test\nAll views show accepted move]
+```
+
 ### Interview questions and answers
 
 **Q: What is the first thing you do when asked to design an online game?**
@@ -116,6 +140,10 @@ The browser files are served as static assets. Each browser opens an outbound We
 
 The engine is a TypeScript package with no runtime dependencies. It can run in the server and in tests without starting Colyseus or a browser. The engine owns concepts such as legal moves, scoring, turn plans, and round transitions. The server owns sockets, timers, room membership, and reconnect handling. The browser owns rendering and user interaction.
 
+In plain terms: the **engine is the rules referee**, while the **server is the online host**. The engine can answer, "Is `8H` legal on this table?" It does not know who is connected, which phone sent the request, or how to send a response. The server knows those online details, but asks the engine to decide the rules. The React browser draws the cards and collects taps; it should not be trusted to declare the move legal.
+
+Imagine replacing Colyseus with another networking library. The way the server accepts a socket might change, but `scoreHand` should still score a hand the same way. That is the practical value of the boundary: network code can change without rewriting the card rules. Conversely, a rules change can be tested in the engine without booting a browser or opening four WebSocket connections.
+
 This boundary reduces accidental duplication. If legality were independently reimplemented in React and Node, the two versions could disagree. With one engine, the server makes the decision and the browser can display the server-provided legal cards.
 
 ### Why a monorepo?
@@ -123,6 +151,8 @@ This boundary reduces accidental duplication. If legality were independently rei
 The root uses npm workspaces for `packages/*` and `apps/*`. In one repository, the engine API and its consumers can change together. Workspace dependencies such as `@cardgame/engine: "*"` resolve to the local package during development and installation.
 
 The tradeoff is that one repository also shares a lockfile, tooling, and release history. Large teams may later need more granular ownership, package publishing, or independent deployment pipelines. A monorepo does not mean every component must deploy together: the static site and server already have separate Render services.
+
+For example, if `PlayerView` gains a field, the engine type, server serializer, and web reducer can be reviewed in one change. npm workspaces make `@cardgame/engine` resolve to the local package, so the server does not need to download a separately published engine release for every edit. The cost is that a careless root-level change can affect both apps; workspace boundaries organize code, but do not make every change independent.
 
 ### Interview questions and answers
 
@@ -174,6 +204,8 @@ Start with the question a diagram is meant to answer. A component diagram answer
 
 Use labels for trust boundaries and data ownership. An arrow labeled `play` is more useful than an unlabeled arrow because it states whether data is an intent or a result.
 
+Here is the same move at two zoom levels. An HLD answer is: "The browser sends a play request to the authoritative server, which uses the engine and then broadcasts safe views." An LLD answer is: "The server parses `8H`, checks Mira's seat and turn, calls `playCard`, replaces the state only on success, then calls `getPlayerView` for each seat." Neither answer is more correct; they answer different questions. Start with the first in an interview and zoom in when asked how validation works.
+
 ### Interview questions and answers
 
 **Q: When would you use a sequence diagram instead of a component diagram?**
@@ -206,6 +238,10 @@ stateDiagram-v2
 
 The engine defines the actual transition functions. For example, `playCard` checks phase, current seat, card ownership, and legality. If the hand becomes empty, it calculates the round score and totals immediately. `startNextRound` accepts only a `round_over` state.
 
+Read the arrows as permissions. `in_round --> round_over` happens when a hand empties; `round_over --> in_round` happens only when the server starts the next round. A card play does not jump directly from `game_over` back into a new round. This picture is useful when checking whether an API operation is valid in a given phase.
+
+Concrete example: before Mira plays, the heart run is `{ low: 7, high: 7 }`, `currentSeat` is Mira, and her hand contains `8H`. After `playCard`, the old state still describes the old board; the returned state has `high: 8`, no `8H` in Mira's hand, and the next turn plan. Trying to play `9H` from that original state must fail and leave the original state untouched. Thinking in terms of "state plus allowed transition" makes it much easier to ask what a function is allowed to change.
+
 ### Pure functions and immutability
 
 A pure function returns the same output for the same input and does not change state outside the function. The engine uses an injected random-number function for shuffling, which makes randomness an explicit input. The seeded `mulberry32` generator makes tests repeatable; production code uses `secureRng`.
@@ -214,11 +250,15 @@ The engine returns new objects instead of mutating the old state. This makes tra
 
 Immutability is not the same as persistence. A new `GameState` in memory is still lost when the process exits. It only means the function preserves its input and returns a new value.
 
+One useful test is to save the input reference, call `playCard`, and then check the input still has `8H` and the old heart high rank. The result should have the card on the table and the new high rank. This is like keeping a photograph of the old board before making the next move. It makes bugs easier to reproduce, but if the Node process crashes, both the old and new in-memory objects disappear; a database or replay log would solve a different problem.
+
 ### Determinism and RNG injection
 
 Determinism is valuable for simulations and bug reproduction. A test can initialize a game with a fixed seed and replay the same choices. Production still needs unpredictable shuffling, so the engine accepts an `Rng` rather than hard-coding a seeded generator.
 
 The seed is not a promise that every platform implementation will remain byte-for-byte compatible forever unless the RNG algorithm and version are treated as a stable contract. For long-term replay compatibility, record the RNG algorithm/version, seed, and inputs or record events.
+
+Suppose a simulation fails on seed `217`. You can run seed `217` again, receive the same shuffle, and inspect the same sequence of moves. If the engine secretly called `Math.random()`, the test could fail differently on each run and the seed would not control the full deal. Production uses a secure random source because a predictable seed would let someone guess cards. The interface is the same (`Rng`); only the source of random values changes.
 
 ### Interview questions and answers
 
@@ -264,9 +304,13 @@ flowchart LR
 
 At round end, other hands are still hidden. The server sends scores and hand counts, not the card identities. If a future game design reveals hands after a round, that should be a deliberate protocol change with tests.
 
+For example, the private server state might contain `Mira: [8H, 2C, ...]` and `Asha: [9H, 4D, ...]`. Mira's view can include Mira's cards, Asha's hand count, and the shared suit runs; it must not include `9H` or `4D`. Merely drawing card backs over Asha's cards in React would not protect them: Mira could inspect the WebSocket payload in developer tools. The safest hidden value is one the server never sent.
+
 ### Trust the source, validate the intent
 
 The browser can highlight the `legalCards` array for a helpful interface, but that is not authorization. A malicious client can send any string. The server first validates the message shape and then asks the engine whether the move is legal in the current authoritative state.
+
+Picture a modified browser sending `play { card: "7H" }` while it is Asha's turn. The JSON is perfectly well formed, so schema validation alone accepts its *shape*. The server's session-to-seat mapping then says the sender is Mira, and the engine/session turn check rejects the *action*. Shape validation answers "does this look like a play message?" Authorization and game rules answer "may this player do this now?"
 
 ### Interview questions and answers
 
@@ -306,17 +350,40 @@ Server-to-client messages are facts or snapshots:
 
 This separates command from event. `play` says “please attempt this.” `card_played` says “the server accepted that a card was played.” A client should not treat its own command as proof that the state changed.
 
+```mermaid
+sequenceDiagram
+    participant M as Mira's browser
+    participant S as Server
+    participant E as Engine
+    M->>S: play { card: "8H" }
+    S->>S: Check message shape and Mira's seat
+    S->>E: Try playCard(currentState, Mira, 8H)
+    alt Legal move
+        E-->>S: New state + card_played event
+        S-->>M: Updated private view + event
+    else Illegal or out of turn
+        E-->>S: Error; original state remains
+        S-->>M: Error + current view
+    end
+```
+
+The key property in this sequence is that the browser sends a *request*, while the server sends back the *result*. If the engine returns an error, the state update and view broadcast should not happen. That is why the sequence places validation before state publication.
+
 ### Schema validation is a boundary
 
 `messages.ts` uses Zod to validate network input. Schemas restrict names, room code format, card IDs, allowed object keys, and numeric ranges. The word **strict** is important: an unexpected field is rejected rather than silently accepted. This catches mistakes and prevents accidental expansion of the API surface.
 
 Typescript types help code at compile time; they do not validate untrusted JSON at runtime. A malicious client can send data that ignores the TypeScript definitions, which is why runtime schema validation is required.
 
+For example, a normal client sends `{ "card": "8H" }`. A modified client could send `{ "card": { "rank": 8, "suit": "H" }, "makeMeHost": true }` or an extremely long string. The browser's TypeScript type does not stop either payload from crossing the network. Zod checks the real received value and can reject the wrong shape, unknown field, or invalid card ID before the game session handles it.
+
 ### Snapshots plus events
 
 The server sends views as snapshots of the current state and events as notable changes. A snapshot is easier for a newly connected client to render without replaying the entire game's history. Events are useful for short-lived effects such as a toast.
 
 There is a tradeoff: an event stream without sequence numbers can be hard to reconcile after a network gap. This version's current view is the recovery mechanism. For stronger ordering and resume behavior, add a monotonically increasing `stateVersion` or event sequence to views and events. A client can then ignore stale messages or request a fresh snapshot.
+
+Suppose the client receives a `card_played` event saying Mira played `8H`, but the connection drops before it receives the next view. The event can explain what happened, but it does not contain Mira's complete hand, score, turn, and all four table runs. On reconnect, a fresh `view` can redraw the whole screen. If messages later carry `stateVersion: 42`, then a delayed version 41 view can be recognized as stale instead of replacing newer data.
 
 ### Protocol evolution
 
@@ -352,6 +419,17 @@ The engine returns one of three turn plans:
 - No legal cards: `auto_pass`.
 - Multiple legal cards: `await_choice`.
 
+```mermaid
+flowchart TD
+    START[Server receives a new turn state] --> COUNT{How many legal cards?}
+    COUNT -->|0| PASS[Schedule automatic pass]
+    COUNT -->|1| AUTO[Schedule automatic play]
+    COUNT -->|2 or more| CHOICE[Wait for player's choice]
+    PASS --> ADVANCE[Apply engine transition and plan next turn]
+    AUTO --> ADVANCE
+    CHOICE -->|Player chooses or times out| ADVANCE
+```
+
 The `GameSession` schedules automatic actions and player timeouts. An auto-play or auto-pass waits the configured delay so it can be seen. An `await_choice` turn waits for a client move or times out. When a choice times out, the server's policy selects the highest-ranked legal card. A disconnected seat becomes bot-controlled after the reconnect window.
 
 ### Why timers need cancellation and stale-state checks
@@ -360,9 +438,26 @@ Suppose the server schedules a timeout for seat 2. Before it fires, the player r
 
 This illustrates a general asynchronous-programming hazard: a callback can run later than the conditions that created it. Reliable systems make callbacks re-check their assumptions before committing a change.
 
+Timeline example: at 12:00:00 the server starts a 30-second choice timer for seat 2. At 12:00:12, seat 2 plays a legal card and the server advances to seat 3. At 12:00:30, the old callback wakes up. Without cancellation or a current-turn check, it might auto-play for seat 2 during seat 3's turn. A timer is a delayed message from the past; before acting, it must prove that the turn it was created for is still current.
+
+```mermaid
+sequenceDiagram
+    participant S as Server timer
+    participant P as Player seat 2
+    participant E as Engine
+    S->>S: Start choice timer for turn 12
+    P->>S: Play a legal card at 12 seconds
+    S->>E: Apply player's move
+    E-->>S: New state; turn 13
+    S->>S: Cancel timer for turn 12
+    Note over S: If stale callback still runs, verify turn ID/state before acting
+```
+
 ### State machines make behavior reviewable
 
 The phase field (`in_round`, `round_over`, `game_over`) prevents operations from being applied in the wrong stage. The engine returns `WRONG_PHASE` instead of trying to infer what the caller meant. A state machine is often clearer than a collection of booleans such as `started`, `roundFinished`, `lastRound`, and `isGameDone`, which can form contradictory combinations.
+
+Think about the interval after a round ends but before the next starts. The table is showing results. A `play` request in that interval should return `WRONG_PHASE`; a next-round transition should be allowed only in the appropriate phase. One named phase makes the allowed actions visible. With booleans, a bug might accidentally set both `roundFinished = true` and `started = false` without anyone knowing which operation is valid.
 
 ### Interview questions and answers
 
@@ -387,9 +482,25 @@ A room groups four connected seats into one game session. The first player to jo
 
 If the service scales to multiple Node instances, each instance has its own set. A code could be generated simultaneously on two machines. The system would need a shared uniqueness authority, such as a database unique constraint or a distributed matchmaker. Room IDs must also route the join request to the process that owns the room.
 
+For a concrete collision, server A and server B both have no knowledge of each other's local `Set`. At nearly the same moment, each generates `AB7KD`. Locally each believes the code is free, but globally two rooms now share it. A shared store with an atomic "claim this code only if unused" operation can decide which server wins. This coordination has a cost, so it is unnecessary while one process owns all rooms.
+
 ### Capacity and lifecycle
 
 The room accepts at most four clients. Before the game starts, a departing player frees a seat and the host can be recomputed. After the game starts, seat identity is preserved so scores and turn order do not change when a connection drops. Empty rooms are disposed and their code is released. A completed game remains open for a short configured linger period before disconnecting clients.
+
+```mermaid
+stateDiagram-v2
+    [*] --> lobby: create room and reserve code
+    lobby --> lobby: player joins or leaves
+    lobby --> in_round: host starts with four seats
+    in_round --> in_round: play, pass, reconnect, or bot takeover
+    in_round --> game_over: final round ends
+    lobby --> disposed: room becomes empty
+    game_over --> disposed: linger period expires
+    disposed --> [*]: release room code
+```
+
+This lifecycle diagram also explains why a room code should be released on disposal: it is a temporary address for a live room, not a permanent player identity.
 
 ### Why not build a separate matchmaking service now?
 
@@ -412,6 +523,26 @@ For four players joining by a known code, Colyseus's room/matchmaker responsibil
 
 Security design starts with trust boundaries. In Sevens, the browser is an untrusted network peer. The room's server code is trusted to validate messages, enforce state transitions, and limit what each player sees.
 
+```mermaid
+flowchart LR
+    subgraph UNTRUSTED[Untrusted browser boundary]
+        UI[React UI]
+        INTENT[Untrusted message\nplay card 8H]
+        UI --> INTENT
+    end
+    subgraph SERVER[Trusted server boundary]
+        SCHEMA[Zod shape validation]
+        SEAT[Session to seat authorization]
+        ENGINE[Engine rules check]
+        VIEWS[Per-seat safe views]
+        SCHEMA --> SEAT --> ENGINE --> VIEWS
+    end
+    INTENT --> SCHEMA
+    VIEWS --> UI
+```
+
+Each gate answers a different question: is the message shaped correctly, does this connection own the seat, is the move legal, and what data is safe to return?
+
 ### Controls present in this project
 
 - Zod validates room join options and gameplay messages.
@@ -426,9 +557,13 @@ Security design starts with trust boundaries. In Sevens, the browser is an untru
 
 Cross-Origin Resource Sharing (CORS) is a browser policy that controls which web origins may read responses. It does not prevent a non-browser client from connecting, and it does not prove that a player is allowed to act. Authorization still comes from room membership, the server's session-to-seat mapping, and game-state checks.
 
+Example: if the deployed site is `https://sevens-web.onrender.com`, the server can allow that origin for browser requests. This does not stop a command-line program from opening a socket, because command-line programs do not have to obey browser CORS rules. The server still needs to reject a `play` from a session that does not own the acting seat. CORS controls which browser pages may read; it does not grant game permissions.
+
 ### Rate limiting and input limits
 
 Rate limiting protects CPU and bandwidth from clients that send too many messages. Input validation protects parsers and business logic from malformed or oversized values. A production system should also consider limits for connection attempts, room creation, reconnect attempts, and per-IP abuse. The correct thresholds depend on observed traffic; too low a threshold blocks legitimate players on shared networks.
+
+Suppose a phone reconnects and sends a join message, then retries because mobile data is slow. A limit that allows only one message total could lock out a real player. A sensible rate limiter allows ordinary retries and card taps while slowing a client that sends hundreds of messages every second. Measure normal traffic first, and distinguish a short burst from sustained abuse where possible.
 
 ### Threats to consider as the project grows
 
@@ -465,6 +600,8 @@ The web client stores a Colyseus reconnection token in `sessionStorage` and atte
 
 This approach preserves the room if the server process and room still exist. It does not preserve the game if the server process restarts, because active room state is in memory.
 
+Example: Asha is playing on a train. Her connection drops for 8 seconds while the Node process stays alive. The browser presents its reconnect token, the same room still remembers Asha's seat, and it can send her the latest view. If the host redeploys the server while she is offline, the room memory disappears; the token cannot reconstruct the shuffled deal by itself. Reconnection and durable recovery solve different failure cases.
+
 ### Failure categories
 
 | Failure | Current behavior | Possible later improvement |
@@ -474,6 +611,21 @@ This approach preserves the room if the server process and room still exist. It 
 | Server process restarts | In-memory rooms are lost. | Persist checkpoints/events or move live room ownership to a durable clustered service. |
 | A message is duplicated | State/phase/turn checks reject many stale actions. | Add command IDs and idempotency tracking for operations where duplicate execution is dangerous. |
 | A timer fires late | Callback checks current state and phase before acting. | Use explicit turn/version IDs for more robust stale-timer detection. |
+
+The table can be read as a small recovery map:
+
+```mermaid
+flowchart TD
+    FAIL[Something interrupts play] --> NET{Only player's network lost?}
+    NET -->|Yes, server still owns room| TOKEN[Reconnect with session token]
+    TOKEN --> VIEW[Receive latest private view]
+    NET -->|No, server process restarted| LOST[In-memory room is gone]
+    LOST --> PERSIST{Was room state persisted?}
+    PERSIST -->|No, current design| END[Players must create or join a new room]
+    PERSIST -->|Future design| RESTORE[Restore snapshot or replay events]
+```
+
+This makes an important boundary visible: reconnect can restore a connection to a surviving room; persistence is what could restore the room after its owner process disappears.
 
 ### Retries and idempotency
 
@@ -500,7 +652,20 @@ The browser app has screens for home, lobby, table, round summary, and game over
 
 A reducer is a function from `(oldState, action)` to `newState`. It centralizes transitions for lobby updates, player views, toasts, connection status, and reset behavior. It avoids unrelated components independently mutating shared client state.
 
+For example, a server message arrives with `type: "view"`. The app dispatches `viewReceived(view)`; the reducer returns a new UI state containing that view. A toast event dispatches a different action and may update the toast field without accidentally wiping the hand. If every component directly edits shared state, a player-card component could change connection status or an out-of-order lobby update could erase a newer game view.
+
 ### Render from the server view
+
+```mermaid
+flowchart LR
+    NET[Colyseus callback] --> ACTION[Typed UI action]
+    ACTION --> REDUCER[Reducer\nold UI state + action]
+    REDUCER --> NEW[New UI state]
+    NEW --> COMPONENTS[React components render]
+    COMPONENTS --> CLICK[Player taps card]
+    CLICK --> CLIENT[Network client sends intent]
+    CLIENT --> NET
+```
 
 The table highlights cards from `view.legalCards`; it does not decide legality. When a player clicks a card, the browser sends its ID. This keeps presentation and authority separate. It also makes the browser simpler: it can focus on clarity and accessibility rather than duplicating every rule.
 
@@ -515,6 +680,8 @@ Performance here is not just CPU speed. It includes:
 - **Touch usability:** controls retain practical touch sizes.
 - **Viewport fit:** the table should remain usable without accidental page scrolling.
 - **Rendering work:** only visible game state changes need to update components.
+
+The card-art work gives a useful concrete example. A large SVG face repeated across the hand and table costs more to download and decode on a phone with a slow connection. Converting the source artwork to small WebP files reduces transfer size. Explicit `width` and `height` on each image reserve its rectangle before decoding, so the hand does not jump when the image appears. These are system-design choices because the network and device affect whether the interface feels responsive.
 
 ### Accessible controls
 
@@ -546,7 +713,22 @@ There are two broad ways to solve this:
 1. **Room affinity:** route every connection for a room to its owning server instance. A matchmaker or shared room registry provides the mapping. The room still has one authority.
 2. **Distributed state/coordination:** share room data and coordinate writes. This is harder because two workers must not accept conflicting moves as if each were authoritative.
 
+```mermaid
+flowchart TB
+    subgraph SIMPLE[One process: current small deployment]
+        ROOM[Room ABCDE] --> OWNER[One server owns state]
+        OWNER --> SEATS[All four seats see one authority]
+    end
+    subgraph SCALED[Multiple processes: future deployment]
+        CLIENTS[Players joining ABCDE] --> ROUTER[Shared room registry]
+        ROUTER --> INSTANCE[Owner instance for ABCDE]
+        INSTANCE --> SHARED[Optional shared persistence or pub/sub]
+    end
+```
+
 For turn-based games, room affinity with one owner per room is usually easier than making every server concurrently mutate a room. Shared infrastructure may still be used for room lookup, pub/sub, and recovery.
+
+Imagine one room has Mira, Asha, Ben, and Dev. If Mira's `play 8H` reaches server A but Asha's next action reaches server B with an old copy of the table, both servers might believe it is their turn. With room affinity, all four sockets for that room go to the one process that owns it. Adding more servers then increases the number of rooms the system can host, while each individual room still has one rule authority.
 
 ```mermaid
 flowchart LR
@@ -573,6 +755,8 @@ The app currently has no database. If the requirement becomes “recover the gam
 - A snapshot plus a short event tail, balancing recovery time and write volume.
 
 Event sourcing is not automatically better. It adds event schema evolution, replay logic, and operational complexity. For a game whose active state is small, snapshots may be simpler. Event logs are useful when auditability, replay, or detailed history is valuable.
+
+For example, a snapshot might save "round 3, seat 1's turn, these suit runs, these four hands, these totals." An event log might instead save `round_started`, `card_played(7H)`, `passed(seat 2)`, and replay each event to rebuild the state. A snapshot is quick to load but must be written safely; replay provides history but every old event format must remain understandable. The requirement "survive a crash" does not by itself tell us which mechanism is better.
 
 ### Capacity estimates
 
@@ -610,11 +794,21 @@ flowchart TB
     ENV2 --> RENDER
 ```
 
+```mermaid
+flowchart LR
+    BUILD[Vite build] -->|VITE_SERVER_URL baked in| STATIC[Static JavaScript bundle]
+    STATIC -->|Browser connects with WSS| NODE[Node server]
+    ENV[CLIENT_ORIGIN and PORT] -->|Read when process starts| NODE
+    CHANGE[Change VITE_SERVER_URL] --> REBUILD[Rebuild and redeploy static site]
+```
+
 ### Build-time and runtime configuration
 
 `VITE_SERVER_URL` is embedded into the static browser bundle during build. Changing it in hosting settings does not rewrite already-built JavaScript; redeploying the static site is required. `CLIENT_ORIGIN` is read by the running server to set allowed web origins. `PORT` is supplied by the hosting platform and must be used by the server.
 
 This distinction is important whenever an application has static assets and a separate API. Ask: is this value read while building files, or when the process starts?
+
+Concrete deployment example: during `npm run build -w @cardgame/web`, Vite replaces `import.meta.env.VITE_SERVER_URL` with `wss://sevens-server.onrender.com`. The resulting JavaScript file contains that server address. Changing the environment variable in Render after the build does not edit the existing file; redeploying the static site rebuilds it. By contrast, `CLIENT_ORIGIN` is read when Node starts, so changing it restarts the server with a new allowlist.
 
 ### Health checks
 
@@ -647,6 +841,16 @@ The server's production start script uses `tsx` to run TypeScript directly. This
 
 Observability is the ability to infer what a system is doing from its outputs. A game server needs enough evidence to answer questions such as “Why could this player not join?” or “Did the timeout occur before the disconnect?”
 
+```mermaid
+flowchart LR
+    ACTION[Player action] --> LOG[Log\nWhat happened?]
+    ACTION --> METRIC[Metric\nHow often or how long?]
+    ACTION --> TRACE[Trace\nWhich components did it cross?]
+    LOG --> DEBUG[Investigate one room and seat]
+    METRIC --> TREND[Spot growing failures or latency]
+    TRACE --> PATH[Find where a request spent time]
+```
+
 ### Logs, metrics, and traces
 
 - **Logs** describe discrete events: room created, join rejected, move accepted, reconnect started.
@@ -654,6 +858,8 @@ Observability is the ability to infer what a system is doing from its outputs. A
 - **Traces** show one operation across components: browser command through room, session, engine, and response.
 
 The current service has a health route and application error handling, but not a full metrics or distributed tracing setup. For a first release, structured logs with room ID, seat, round, phase, and error code can make debugging much easier. Avoid logging card hands or other private state.
+
+Suppose players report, "We got stuck after seat 3 disconnected." A log line with `room=AB7KD seat=3 phase=in_round event=reconnect_window_expired` gives an operator a starting point. A metric showing reconnect failures rising across many rooms tells them it is a wider problem. A trace can connect one particular join attempt from the WebSocket handler to the session logic. These are complementary clues: logs give detail, metrics show trends, and traces show a path across components.
 
 ### Correlation IDs
 
@@ -698,6 +904,20 @@ Tests are not just a final quality check. They make design assumptions explicit.
 5. **Integration tests:** start a Colyseus test server, connect four clients, send protocol messages, and verify full games and view privacy.
 6. **Browser/build checks:** typecheck the web app and produce a production Vite build.
 
+This is often drawn as a test pyramid: many cheap checks at the bottom, fewer expensive checks at the top.
+
+```mermaid
+flowchart BT
+    UNIT[Many unit and engine tests]
+    DOMAIN[Domain transition tests]
+    SIM[Seeded simulations]
+    INTEGRATION[Fewer server integration tests]
+    E2E[Small number of browser end-to-end checks]
+    UNIT --> DOMAIN --> SIM --> INTEGRATION --> E2E
+```
+
+The pyramid is a guide, not a law. Sevens benefits from many fast engine tests because rules are pure, plus a smaller number of real four-client tests to prove the network wiring works.
+
 ### Invariants are stronger than examples
 
 An example test says “this hand should produce these legal cards.” An invariant says “hands plus table always contain 52 unique cards.” Example tests check known cases. Invariants can catch unexpected combinations across many simulated games.
@@ -714,6 +934,8 @@ Important Sevens invariants include:
 ### Deterministic simulation
 
 The 500-game simulation uses seeded RNGs. When a simulation fails, the seed helps recreate the same deal and sequence. This is an effective way to search a large state space for edge cases without making the test nondeterministic.
+
+For example, a simulation can assert after every play that exactly 52 cards are accounted for across hands and the table. A bug that accidentally drops a card on move 37 of game seed 217 might never appear in a hand-written "play 7H" test. The seeded simulation finds it, reports the seed and step, and lets a developer replay that exact sequence while debugging.
 
 ### Test what can fail at the boundary
 
@@ -759,6 +981,8 @@ There is no design that is “best” without context. The first version optimiz
 
 **Before adding a second protocol version:** write compatibility tests for the old and new client/server combinations, and decide how old clients are warned or rejected.
 
+Use evidence to choose the next improvement. If users say games vanish during deploys, persistence or graceful draining may matter more than more server instances. If logs show the service is healthy but turns arrive slowly, measure network latency and event-loop delay before adding a database. If the only complaint is that the card hand is hard to use on a phone, improve layout and asset weight instead of changing the backend. System design is choosing the part that addresses the observed problem.
+
 ### Interview questions and answers
 
 **Q: Is the simplest design always the best design?**
@@ -786,6 +1010,10 @@ When asked to design a system in an interview, do not start by listing fashionab
 8. **Discuss consistency and failure.** What happens on retries, timeouts, restarts, and concurrent requests?
 9. **Secure the trust boundaries.** Identify untrusted clients, private data, validation, authorization, and rate limits.
 10. **Explain tradeoffs and evolution.** Say why the current solution fits and what evidence would trigger the next design.
+
+### Walkthrough: answer with a specific play
+
+If asked, "How does your system prevent an illegal move?", avoid stopping at "the server validates it." Walk through a concrete example: "Mira sends `play 9H`. The room maps her socket to seat 0 and validates the message shape. The session checks it is seat 0's turn. The engine sees hearts currently end at 7, so 9H is not adjacent and returns `ILLEGAL_CARD`. The server leaves the authoritative state unchanged and sends an error/current view. The browser keeps rendering the server's state." That answer demonstrates the layers, the rule, the failure path, and why the browser is not the authority.
 
 ### Example 90-second answer: “Design multiplayer Sevens”
 
