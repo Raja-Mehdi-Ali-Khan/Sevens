@@ -28,9 +28,19 @@ describe("message schemas", () => {
   });
 
   it("accepts each documented server payload shape and rejects extra fields", () => {
-    const lobby = { code: "AB234", hostSeat: 0, players: [{ seat: 0, name: "Ada", connected: true }] };
+    const lobby = {
+      code: "AB234",
+      hostSeat: 0,
+      players: [
+        { seat: 0, name: "Ada", connected: true, isBot: false },
+        { seat: 1, name: null, connected: false, isBot: false },
+        { seat: 2, name: "Kabir", connected: false, isBot: true },
+        { seat: 3, name: null, connected: false, isBot: false },
+      ],
+    };
     expect(lobbyMessageSchema.safeParse(lobby).success).toBe(true);
     expect(lobbyMessageSchema.safeParse({ ...lobby, secret: "hidden" }).success).toBe(false);
+    expect(lobbyMessageSchema.safeParse({ ...lobby, players: lobby.players.slice(0, 3) }).success).toBe(false);
 
     const view = {
       seat: 0,

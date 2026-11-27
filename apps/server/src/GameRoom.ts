@@ -4,7 +4,6 @@ import type { GameEvent, PlayerView, Seat } from "@cardgame/engine";
 import {
   DEFAULT_TIMINGS,
   MAX_MESSAGES_PER_SECOND,
-  RECONNECT_WINDOW_MS,
   type TimingConfig,
 } from "./config";
 import { GameSession } from "./gameSession";
@@ -46,6 +45,10 @@ export class GameRoom extends Room {
           this.shuttingDown = true;
           void this.disconnect();
         },
+        onEmptyRoomTimeout: () => {
+          this.shuttingDown = true;
+          void this.disconnect();
+        },
       },
       GameRoom.timingOverrides,
     );
@@ -64,9 +67,16 @@ export class GameRoom extends Room {
     if (parsed.data.code !== undefined && parsed.data.code !== normalizeRoomCode(this.code)) {
       throw new Error("Room code does not match");
     }
+    if (this.session.started) {
+      throw new Error("This game has already started.");
+    }
 
     const result = this.session.addPlayer(parsed.data.name);
-    if (!result.ok) throw new Error(result.error);
+    if (!result.ok) {
+      if (result.error === "ALREADY_STARTED") throw new Error("This game has already started.");
+      if (result.error === "NOT_ENOUGH_PLAYERS") throw new Error("This room is full.");
+      throw new Error(result.error);
+    }
     client.userData = { seat: result.value };
     this.seatBySession.set(client.sessionId, result.value);
     this.clientsBySeat.set(result.value, client);
@@ -80,7 +90,7 @@ export class GameRoom extends Room {
 
     this.session.seatDisconnected(seat);
     try {
-      await this.allowReconnection(client, RECONNECT_WINDOW_MS / 1000);
+      await this.allowReconnection(client, GameRoom.timingOverrides.reconnectWindowMs / 1000);
     } catch {
       // The session's injected timer performs permanent bot takeover at the same deadline.
     }
@@ -103,7 +113,7 @@ export class GameRoom extends Room {
     if (!this.session.started) {
       this.seatBySession.delete(client.sessionId);
       this.session.removePlayer(seat);
-      if (this.session.getLobbyPlayers().length === 0) {
+      if (this.session.getSeatedHumanCount() === 0) {
         this.shuttingDown = true;
         await this.disconnect();
       }
@@ -113,7 +123,7 @@ export class GameRoom extends Room {
     if (code === CloseCode.CONSENTED && !this.shuttingDown) {
       this.session.seatDisconnected(seat);
       try {
-        await this.allowReconnection(client, RECONNECT_WINDOW_MS / 1000);
+        await this.allowReconnection(client, GameRoom.timingOverrides.reconnectWindowMs / 1000);
       } catch {
         // The session owns the seat and will convert it to a bot after the window.
       }
@@ -139,7 +149,17 @@ export class GameRoom extends Room {
       return;
     }
     const result = this.session.start(seat);
-    if (!result.ok) this.sendError(client, result.error, "Only the host can start after four players have joined");
+    if (!result.ok) {
+      const message =
+        result.error === "NOT_HOST"
+          ? "Only the host can start the game"
+          : result.error === "ALREADY_STARTED"
+            ? "This game has already started."
+            : "At least one player is required to start";
+      this.sendError(client, result.error, message);
+      return;
+    }
+    void this.lock();
   }
 
   private handlePlayMessage(client: Client, payload: unknown): void {

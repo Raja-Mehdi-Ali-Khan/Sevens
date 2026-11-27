@@ -29,6 +29,10 @@ class FakeTimers {
     this.timers.delete(handle as number);
   };
 
+  get activeTimerCount(): number {
+    return [...this.timers.values()].filter((timer) => !timer.cancelled).length;
+  }
+
   runNext(): void {
     const next = [...this.timers.values()]
       .filter((timer) => !timer.cancelled)
@@ -58,10 +62,13 @@ class FakeTimers {
 
 const FAST_TIMINGS: TimingConfig = {
   autoMoveDelayMs: 10,
+  botMoveMinMs: 20,
+  botMoveMaxMs: 40,
   turnTimeoutMs: 50,
   reconnectWindowMs: 100,
   nextRoundDelayMs: 20,
   gameOverLingerMs: 30,
+  emptyRoomDisposeMs: 80,
 };
 
 interface Harness {
@@ -70,6 +77,7 @@ interface Harness {
   views: Array<{ seat: Seat; view: PlayerView }>;
   events: GameEvent[][];
   lobbyUpdates: number;
+  emptyRoomTimeouts: number;
 }
 
 function createHarness(seed = 1, timings = FAST_TIMINGS): Harness {
@@ -77,6 +85,7 @@ function createHarness(seed = 1, timings = FAST_TIMINGS): Harness {
   const views: Array<{ seat: Seat; view: PlayerView }> = [];
   const events: GameEvent[][] = [];
   let lobbyUpdates = 0;
+  let emptyRoomTimeouts = 0;
   const session = new GameSession(
     {
       rng: mulberry32(seed),
@@ -85,10 +94,18 @@ function createHarness(seed = 1, timings = FAST_TIMINGS): Harness {
       sendLobby: () => { lobbyUpdates += 1; },
       setTimer: timers.setTimer,
       clearTimer: timers.clearTimer,
+      onEmptyRoomTimeout: () => { emptyRoomTimeouts += 1; },
     },
     timings,
   );
-  return { session, timers, views, events, get lobbyUpdates() { return lobbyUpdates; } };
+  return {
+    session,
+    timers,
+    views,
+    events,
+    get lobbyUpdates() { return lobbyUpdates; },
+    get emptyRoomTimeouts() { return emptyRoomTimeouts; },
+  };
 }
 
 function fillSeats(session: GameSession): void {
@@ -126,24 +143,54 @@ function driveUntil(
 }
 
 describe("GameSession lobby", () => {
-  it("enforces four seats, host start, and host reassignment", () => {
+  it("enforces host start with 1-4 humans, host reassignment, and rejects duplicate or non-host starts", () => {
     const { session } = createHarness();
     expect(session.start(0)).toEqual({ ok: false, error: "NOT_HOST" });
     expect(session.addPlayer("First")).toEqual({ ok: true, value: 0 });
     expect(session.addPlayer("Second")).toEqual({ ok: true, value: 1 });
-    expect(session.start(0)).toEqual({ ok: false, error: "NOT_ENOUGH_PLAYERS" });
 
     session.removePlayer(0);
     expect(session.hostSeat).toBe(1);
     expect(session.start(0)).toEqual({ ok: false, error: "NOT_HOST" });
-    expect(session.start(1)).toEqual({ ok: false, error: "NOT_ENOUGH_PLAYERS" });
     expect(session.addPlayer("Third")).toEqual({ ok: true, value: 0 });
     expect(session.addPlayer("Fourth")).toEqual({ ok: true, value: 2 });
     expect(session.addPlayer("Fifth")).toEqual({ ok: true, value: 3 });
     expect(session.addPlayer("Sixth")).toEqual({ ok: false, error: "NOT_ENOUGH_PLAYERS" });
     expect(session.start(0)).toEqual({ ok: true, value: undefined });
+    expect(session.start(0)).toEqual({ ok: false, error: "ALREADY_STARTED" });
     expect(session.addPlayer("Late")).toEqual({ ok: false, error: "ALREADY_STARTED" });
     session.dispose();
+  });
+
+  it("fills vacant seats with bots when starting with 1, 2, 3, or 4 humans", () => {
+    for (const humanCount of [1, 2, 3, 4]) {
+      const { session, views } = createHarness(humanCount + 10);
+      const humanNames: string[] = [];
+      for (let i = 0; i < humanCount; i += 1) {
+        const name = `Human${i}`;
+        humanNames.push(name);
+        expect(session.addPlayer(name)).toEqual({ ok: true, value: i });
+      }
+      expect(session.start(0)).toEqual({ ok: true, value: undefined });
+
+      const lobby = session.getLobbyPlayers();
+      expect(lobby).toHaveLength(4);
+      const bots = lobby.filter((p) => p.isBot);
+      const humans = lobby.filter((p) => !p.isBot);
+      expect(humans).toHaveLength(humanCount);
+      expect(bots).toHaveLength(4 - humanCount);
+
+      for (const bot of bots) {
+        expect(bot.name).not.toBeNull();
+        expect(bot.connected).toBe(false);
+        expect(humanNames.map((n) => n.toLowerCase())).not.toContain(bot.name!.toLowerCase());
+      }
+      expect(new Set(bots.map((b) => b.name)).size).toBe(4 - humanCount);
+
+      // Bot hands are never sent to anyone; only human seats receive views
+      expect(views.every((v) => v.seat < humanCount)).toBe(true);
+      session.dispose();
+    }
   });
 });
 
@@ -278,10 +325,13 @@ describe("GameSession turn orchestration", () => {
   it("finishes all seven rounds for four bots and maintains engine invariants", () => {
     const timings: TimingConfig = {
       autoMoveDelayMs: 0,
+      botMoveMinMs: 0,
+      botMoveMaxMs: 0,
       turnTimeoutMs: 0,
       reconnectWindowMs: 0,
       nextRoundDelayMs: 0,
       gameOverLingerMs: 0,
+      emptyRoomDisposeMs: 1000,
     };
     const timers = new FakeTimers();
     const events: GameEvent[] = [];
@@ -331,5 +381,100 @@ describe("GameSession turn orchestration", () => {
     expect(events.at(-1)?.type).toBe("game_over");
     expect([0, 1, 2, 3].every((seat) => session.getPlayer(seat as Seat)?.isBot)).toBe(true);
     session.dispose();
+  });
+
+  it("uses bot delay range for bot turns while keeping human timings unchanged", () => {
+    const timings: TimingConfig = {
+      autoMoveDelayMs: 100,
+      botMoveMinMs: 700,
+      botMoveMaxMs: 1500,
+      turnTimeoutMs: 3000,
+      reconnectWindowMs: 5000,
+      nextRoundDelayMs: 200,
+      gameOverLingerMs: 300,
+      emptyRoomDisposeMs: 5000,
+    };
+
+    // Find a seed where a bot holds 7H on the first move
+    let seed = 1;
+    while (seed < 100) {
+      const probe = createHarness(seed, timings);
+      probe.session.addPlayer("Human");
+      probe.session.start(0);
+      if (probe.session.state!.currentSeat !== 0) {
+        const before = structuredClone(probe.session.state);
+        // Must not fire before botMoveMinMs (700ms)
+        probe.timers.advanceBy(timings.botMoveMinMs - 1);
+        expect(probe.session.state).toEqual(before);
+        // Must fire by botMoveMaxMs (1500ms)
+        probe.timers.advanceBy(timings.botMoveMaxMs - timings.botMoveMinMs + 1);
+        expect(probe.session.state?.table.H).toEqual({ low: 7, high: 7 });
+        probe.session.dispose();
+        break;
+      }
+      probe.session.dispose();
+      seed += 1;
+    }
+    expect(seed).toBeLessThan(100);
+  });
+
+  it("completes 7 rounds with 1 human and 3 bots and never leaks other hands", () => {
+    const { session, timers, views, events } = createHarness(77);
+    expect(session.addPlayer("SoloHuman")).toEqual({ ok: true, value: 0 });
+    expect(session.start(0)).toEqual({ ok: true, value: undefined });
+
+    for (let step = 0; step < 5000; step += 1) {
+      const state = session.state!;
+      if (state.phase === "game_over") break;
+      if (state.phase === "in_round" && state.currentSeat === 0 && getTurnPlan(state).kind === "await_choice") {
+        const plan = getTurnPlan(state);
+        if (plan.kind === "await_choice") {
+          const res = session.handlePlay(0, cardId(plan.options[0]!));
+          expect(res.ok).toBe(true);
+          continue;
+        }
+      }
+      timers.runNext();
+    }
+
+    expect(session.state?.phase).toBe("game_over");
+    expect(session.state?.round).toBe(7);
+    expect(events.flat().filter((e) => e.type === "round_won")).toHaveLength(7);
+    // Only seat 0 (the human) ever received views
+    expect(views.every((v) => v.seat === 0)).toBe(true);
+    session.dispose();
+  });
+
+  it("disposes an empty room after emptyRoomDisposeMs and cancels if human reconnects", () => {
+    const harness1 = createHarness(12);
+    harness1.session.addPlayer("Solo");
+    harness1.session.start(0);
+    harness1.session.seatDisconnected(0);
+
+    // Within reconnect window: not disposed
+    harness1.timers.advanceBy(FAST_TIMINGS.reconnectWindowMs - 1);
+    expect(harness1.emptyRoomTimeouts).toBe(0);
+
+    // Reconnect before window expires
+    expect(harness1.session.seatReconnected(0)).toBe(true);
+    harness1.timers.advanceBy(FAST_TIMINGS.emptyRoomDisposeMs + FAST_TIMINGS.reconnectWindowMs);
+    expect(harness1.emptyRoomTimeouts).toBe(0);
+    harness1.session.dispose();
+
+    // Now let reconnect window expire without reconnecting
+    const harness2 = createHarness(13);
+    harness2.session.addPlayer("Solo");
+    harness2.session.start(0);
+    harness2.session.seatDisconnected(0);
+    harness2.timers.advanceBy(FAST_TIMINGS.reconnectWindowMs);
+    expect(harness2.session.getPlayer(0)?.isBot).toBe(true);
+    expect(harness2.emptyRoomTimeouts).toBe(0);
+
+    harness2.timers.advanceBy(FAST_TIMINGS.emptyRoomDisposeMs - 1);
+    expect(harness2.emptyRoomTimeouts).toBe(0);
+
+    harness2.timers.advanceBy(1);
+    expect(harness2.emptyRoomTimeouts).toBe(1);
+    expect(harness2.timers.activeTimerCount).toBe(0);
   });
 });

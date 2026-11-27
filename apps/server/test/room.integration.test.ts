@@ -10,10 +10,13 @@ import type { TimingConfig } from "../src/config";
 
 const TEST_TIMINGS: TimingConfig = {
   autoMoveDelayMs: 25,
+  botMoveMinMs: 20,
+  botMoveMaxMs: 35,
   turnTimeoutMs: 10_000,
   reconnectWindowMs: 1000,
   nextRoundDelayMs: 25,
   gameOverLingerMs: 200,
+  emptyRoomDisposeMs: 500,
 };
 
 const VIEW_KEYS = [
@@ -49,10 +52,13 @@ describe("GameRoom integration", () => {
     await testServer.shutdown();
     GameRoom.timingOverrides = {
       autoMoveDelayMs: 1000,
+      botMoveMinMs: 700,
+      botMoveMaxMs: 1500,
       turnTimeoutMs: 30_000,
       reconnectWindowMs: 60_000,
       nextRoundDelayMs: 5000,
       gameOverLingerMs: 60_000,
+      emptyRoomDisposeMs: 30_000,
     };
   });
 
@@ -212,4 +218,91 @@ describe("GameRoom integration", () => {
     }
     expect(protocolProblems).toEqual([]);
   }, 120_000);
+
+  it("allows 1 human to start with 3 bots, locks the room, and completes 7 rounds", async () => {
+    const serverRoom = await testServer.createRoom("sevens", {}) as GameRoom;
+    const code = serverRoom.roomId;
+    const host = await testServer.connectTo(serverRoom, { name: "SoloHost" });
+
+    const received: { lobby: LobbyMessage | null; view: PlayerView | null } = { lobby: null, view: null };
+    host.onMessage("lobby", (lobby: LobbyMessage) => { received.lobby = lobby; });
+    host.onMessage("view", (view: PlayerView) => { received.view = view; });
+    host.onMessage("event", () => undefined);
+
+    await waitUntil(() => received.lobby !== null, "Did not receive initial lobby");
+    expect(received.lobby!.players).toHaveLength(4);
+    expect(received.lobby!.players.filter((p) => p.name === null)).toHaveLength(3);
+
+    host.send("start");
+    await waitUntil(() => received.view !== null, "Did not receive initial view");
+    await waitUntil(
+      () => received.lobby !== null && received.lobby.players.filter((p) => p.isBot).length === 3,
+      "Lobby did not populate 3 bots",
+    );
+
+    // Room is locked after start: joining mid-game must fail
+    await expect(testServer.sdk.joinById(code, { name: "Latecomer", code })).rejects.toBeDefined();
+
+    const sentTurns = new Set<string>();
+    const deadline = Date.now() + 60_000;
+    while (Date.now() < deadline) {
+      const currentView = received.view;
+      if (currentView?.phase === "game_over") break;
+      if (currentView && currentView.phase === "in_round" && currentView.turnPlan === "await_choice") {
+        const key = `${currentView.round}/${currentView.currentSeat}/${currentView.legalCards.join(",")}`;
+        if (!sentTurns.has(key)) {
+          sentTurns.add(key);
+          host.send("play", { card: currentView.legalCards[0]! });
+        }
+      }
+      await delay(5);
+    }
+
+    expect(received.view?.phase).toBe("game_over");
+    expect(received.view?.round).toBe(7);
+  }, 60_000);
+
+  it("allows 2 humans plus 2 bots to play 7 rounds with disjoint hands", async () => {
+    const serverRoom = await testServer.createRoom("sevens", {}) as GameRoom;
+    const code = serverRoom.roomId;
+    const host = await testServer.connectTo(serverRoom, { name: "HumanA" });
+    const guest = await testServer.connectTo(serverRoom, { name: "HumanB", code });
+
+    const views = new Map<ClientRoom, PlayerView>();
+    const received: { lobby: LobbyMessage | null } = { lobby: null };
+    host.onMessage("view", (v: PlayerView) => views.set(host, v));
+    guest.onMessage("view", (v: PlayerView) => views.set(guest, v));
+    host.onMessage("lobby", (l: LobbyMessage) => { received.lobby = l; });
+    guest.onMessage("lobby", () => undefined);
+    host.onMessage("event", () => undefined);
+    guest.onMessage("event", () => undefined);
+
+    host.send("start");
+    await waitUntil(() => views.size === 2, "Both humans did not receive views");
+    expect(received.lobby?.players.filter((p) => p.isBot)).toHaveLength(2);
+    assertDisjointHands([...views.values()]);
+
+    const sentTurns = new Map<ClientRoom, Set<string>>();
+    const deadline = Date.now() + 60_000;
+    while (Date.now() < deadline) {
+      const current = [...views.values()];
+      if (current.length === 2 && current.every((v) => v.phase === "game_over")) break;
+
+      for (const client of [host, guest]) {
+        const view = views.get(client);
+        if (!view || view.phase !== "in_round" || view.turnPlan !== "await_choice") continue;
+        const key = `${view.round}/${view.currentSeat}/${view.legalCards.join(",")}`;
+        const seen = sentTurns.get(client) ?? new Set<string>();
+        if (!seen.has(key)) {
+          seen.add(key);
+          sentTurns.set(client, seen);
+          client.send("play", { card: view.legalCards[0]! });
+        }
+      }
+      await delay(5);
+    }
+
+    expect([...views.values()].every((v) => v.phase === "game_over")).toBe(true);
+    expect([...views.values()].every((v) => v.round === 7)).toBe(true);
+  }, 60_000);
 });

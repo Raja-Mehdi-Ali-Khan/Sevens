@@ -27,10 +27,17 @@ export const joinOptionsSchema = z.object({
 export const startMessageSchema = z.undefined();
 export const playMessageSchema = z.object({ card: cardIdSchema }).strict();
 
+export const lobbyPlayerSchema = z.object({
+  seat: seatSchema,
+  name: z.string().nullable(),
+  connected: z.boolean(),
+  isBot: z.boolean(),
+}).strict();
+
 export const lobbyMessageSchema = z.object({
   code: z.string().length(ROOM_CODE_LENGTH),
   hostSeat: seatSchema.nullable(),
-  players: z.array(z.object({ seat: seatSchema, name: z.string(), connected: z.boolean() }).strict()),
+  players: z.array(lobbyPlayerSchema).length(4),
 }).strict();
 
 export const viewMessageSchema = z.object({

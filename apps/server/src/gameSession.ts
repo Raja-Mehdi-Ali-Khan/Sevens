@@ -10,11 +10,19 @@ import {
 import type { Card, CardId, GameEvent, GameState, PlayerView, Rng, Seat } from "@cardgame/engine";
 import { DEFAULT_TIMINGS } from "./config";
 import type { TimingConfig } from "./config";
+import { pickBotNames } from "./botNames";
 import { chooseCardForTimeoutOrBot } from "./policy";
 
 export interface SessionPlayer {
   seat: Seat;
   name: string;
+  connected: boolean;
+  isBot: boolean;
+}
+
+export interface LobbyPlayer {
+  seat: Seat;
+  name: string | null;
   connected: boolean;
   isBot: boolean;
 }
@@ -27,6 +35,7 @@ export interface GameSessionDependencies {
   setTimer: (callback: () => void, milliseconds: number) => unknown;
   clearTimer: (handle: unknown) => void;
   onGameOverReady?: () => void;
+  onEmptyRoomTimeout?: () => void;
 }
 
 export type SessionErrorCode =
@@ -57,6 +66,7 @@ export class GameSession {
   private currentGame: GameState | null = null;
   private currentHost: Seat | null = null;
   private actionTimer: unknown | null = null;
+  private emptyRoomTimer: unknown | null = null;
   private disposed = false;
 
   constructor(dependencies: GameSessionDependencies, timings: TimingConfig = DEFAULT_TIMINGS) {
@@ -81,10 +91,23 @@ export class GameSession {
     return player == null ? null : { ...player };
   }
 
-  getLobbyPlayers(): Array<{ seat: Seat; name: string; connected: boolean }> {
-    return this.players.flatMap((player) =>
-      player === null ? [] : [{ seat: player.seat, name: player.name, connected: player.connected }],
-    );
+  getLobbyPlayers(): LobbyPlayer[] {
+    return SEATS.map((seat) => {
+      const player = this.players[seat];
+      if (player == null) {
+        return { seat, name: null, connected: false, isBot: false };
+      }
+      return {
+        seat: player.seat,
+        name: player.name,
+        connected: player.connected,
+        isBot: player.isBot,
+      };
+    });
+  }
+
+  getSeatedHumanCount(): number {
+    return this.players.filter((player) => player !== null && !player.isBot).length;
   }
 
   addPlayer(name: string): SessionResult<Seat> {
@@ -108,8 +131,25 @@ export class GameSession {
   start(seat: Seat): SessionResult<void> {
     if (this.started) return { ok: false, error: "ALREADY_STARTED" };
     if (seat !== this.currentHost) return { ok: false, error: "NOT_HOST" };
-    if (this.players.filter((player) => player !== null).length !== 4) {
+    const humanCount = this.players.filter((player) => player !== null).length;
+    if (humanCount < 1) {
       return { ok: false, error: "NOT_ENOUGH_PLAYERS" };
+    }
+
+    const vacantSeats = SEATS.filter((candidate) => this.players[candidate] === null);
+    if (vacantSeats.length > 0) {
+      const takenNames = this.players
+        .filter((player): player is SessionPlayer => player !== null)
+        .map((player) => player.name);
+      const botNames = pickBotNames(vacantSeats.length, takenNames, this.dependencies.rng);
+      vacantSeats.forEach((vacantSeat, index) => {
+        this.players[vacantSeat] = {
+          seat: vacantSeat,
+          name: botNames[index]!,
+          connected: false,
+          isBot: true,
+        };
+      });
     }
 
     this.currentGame = createGame(this.dependencies.rng);
@@ -149,6 +189,8 @@ export class GameSession {
       disconnectedPlayer.isBot = true;
       this.publishState([]);
       this.dependencies.sendLobby();
+      this.checkEmptyRoomDispose();
+      if (this.disposed) return;
       if (this.currentGame?.currentSeat === seat) this.cancelActionTimer();
       if (this.actionTimer === null) this.scheduleNextAction();
     }, this.timings.reconnectWindowMs);
@@ -163,6 +205,7 @@ export class GameSession {
     if (!this.started || player === null || player === undefined || player.isBot) return false;
 
     this.clearReconnectTimer(seat);
+    this.cancelEmptyRoomTimer();
     player.connected = true;
     if (this.currentGame !== null) this.dependencies.sendView(seat, getPlayerView(this.currentGame, seat));
     this.dependencies.sendLobby();
@@ -176,6 +219,7 @@ export class GameSession {
     this.timers.clear();
     this.reconnectTimers.clear();
     this.actionTimer = null;
+    this.emptyRoomTimer = null;
   }
 
   private recomputeHost(): void {
@@ -226,29 +270,35 @@ export class GameSession {
     const plan = getTurnPlan(state);
     const seat = state.currentSeat;
     const currentPlayer = this.players[seat];
-    const botTurn = currentPlayer?.isBot === true || currentPlayer?.connected === false;
+    const isBotSeat = currentPlayer?.isBot === true;
 
     if (plan.kind === "auto_play") {
+      const delay = isBotSeat ? this.getBotDelayMs() : this.timings.autoMoveDelayMs;
       this.actionTimer = this.schedule(() => {
         this.actionTimer = null;
         if (this.currentGame !== state) return;
         const result = playCard(state, seat, plan.card);
         if (result.ok) this.acceptEngineResult(result.value.state, result.value.events);
-      }, this.timings.autoMoveDelayMs);
+      }, delay);
       return;
     }
 
     if (plan.kind === "auto_pass") {
+      const delay = isBotSeat ? this.getBotDelayMs() : this.timings.autoMoveDelayMs;
       this.actionTimer = this.schedule(() => {
         this.actionTimer = null;
         if (this.currentGame !== state) return;
         const result = passTurn(state, seat);
         if (result.ok) this.acceptEngineResult(result.value.state, result.value.events);
-      }, this.timings.autoMoveDelayMs);
+      }, delay);
       return;
     }
 
-    const delay = botTurn ? this.timings.autoMoveDelayMs : this.timings.turnTimeoutMs;
+    const delay = isBotSeat
+      ? this.getBotDelayMs()
+      : currentPlayer?.connected === false
+        ? this.timings.autoMoveDelayMs
+        : this.timings.turnTimeoutMs;
     this.actionTimer = this.schedule(() => {
       this.actionTimer = null;
       if (this.currentGame !== state || this.currentGame.phase !== "in_round") return;
@@ -256,6 +306,31 @@ export class GameSession {
       const result = playCard(this.currentGame, seat, choice);
       if (result.ok) this.acceptEngineResult(result.value.state, result.value.events);
     }, delay);
+  }
+
+  private getBotDelayMs(): number {
+    const min = this.timings.botMoveMinMs;
+    const max = this.timings.botMoveMaxMs;
+    if (max <= min) return min;
+    return min + Math.floor(this.dependencies.rng() * (max - min + 1));
+  }
+
+  private checkEmptyRoomDispose(): void {
+    if (this.disposed || !this.started) return;
+    const hasConnectedHuman = this.players.some((player) => player !== null && !player.isBot && player.connected);
+    if (hasConnectedHuman || this.reconnectTimers.size > 0 || this.emptyRoomTimer !== null) return;
+
+    this.emptyRoomTimer = this.schedule(() => {
+      this.emptyRoomTimer = null;
+      this.dispose();
+      this.dependencies.onEmptyRoomTimeout?.();
+    }, this.timings.emptyRoomDisposeMs);
+  }
+
+  private cancelEmptyRoomTimer(): void {
+    if (this.emptyRoomTimer === null) return;
+    this.cancelTimer(this.emptyRoomTimer);
+    this.emptyRoomTimer = null;
   }
 
   private schedule(callback: () => void, milliseconds: number): unknown {
