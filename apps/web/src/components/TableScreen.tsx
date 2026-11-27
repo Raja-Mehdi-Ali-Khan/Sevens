@@ -238,7 +238,7 @@ export function TableScreen({
 
       {/* (b) Large Oval Table with Players Seated On Boundary */}
       <main className="table-board-region relative">
-        <div className="w-full flex-1 min-h-0 flex items-center justify-center py-6 px-3 sm:py-7 sm:px-10">
+        <div className="w-full flex-1 min-h-0 flex items-center justify-center py-6 px-2 sm:py-7 sm:px-10">
           <div className="theme-oval-table relative w-full max-w-[460px] sm:max-w-[580px] mx-auto">
             {/* Top seat centered on top oval boundary */}
             {opponents.find((o) => o.position === "top") && (() => {
@@ -263,7 +263,7 @@ export function TableScreen({
             {opponents.find((o) => o.position === "left") && (() => {
               const seat = opponents.find((o) => o.position === "left")!.seat;
               return (
-                <div className="absolute left-0 top-1/2 -translate-x-1/4 sm:-translate-x-1/2 -translate-y-1/2 z-20">
+                <div className="absolute left-0 top-1/2 -translate-x-1 sm:-translate-x-1/2 -translate-y-1/2 z-20">
                   <PlayerSeat
                     seat={seat}
                     name={getPlayerName(seat)}
@@ -282,7 +282,7 @@ export function TableScreen({
             {opponents.find((o) => o.position === "right") && (() => {
               const seat = opponents.find((o) => o.position === "right")!.seat;
               return (
-                <div className="absolute right-0 top-1/2 translate-x-1/4 sm:translate-x-1/2 -translate-y-1/2 z-20">
+                <div className="absolute right-0 top-1/2 translate-x-1 sm:translate-x-1/2 -translate-y-1/2 z-20">
                   <PlayerSeat
                     seat={seat}
                     name={getPlayerName(seat)}
