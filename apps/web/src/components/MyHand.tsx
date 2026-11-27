@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import { useReducedMotion } from "motion/react";
+import * as m from "motion/react-m";
 import type { Card, CardId } from "@cardgame/engine";
 import { computeHandLayout, splitHandIntoRows } from "../lib/handLayout";
 import { sortHand } from "../lib/cards";
@@ -8,11 +10,13 @@ interface MyHandProps {
   hand: Card[];
   legalCards: CardId[];
   isMyChoice: boolean;
-  onPlayCard: (cardId: CardId) => void;
+  dealVersion?: number;
+  onPlayCard: (cardId: CardId, rect?: DOMRect) => void;
 }
 
-export function MyHand({ hand, legalCards, isMyChoice, onPlayCard }: MyHandProps) {
+export function MyHand({ hand, legalCards, isMyChoice, dealVersion = 0, onPlayCard }: MyHandProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const shouldReduceMotion = useReducedMotion();
   const [metrics, setMetrics] = useState(() => ({
     containerWidth: typeof window !== "undefined" ? Math.min(window.innerWidth - 16, 464) : 344,
     cardWidth: 78,
@@ -60,9 +64,15 @@ export function MyHand({ hand, legalCards, isMyChoice, onPlayCard }: MyHandProps
   const cardHeight = metrics.cardHeight;
 
   const availableWidth = Math.max(metrics.containerWidth, cardWidth);
+  const animateDeal = dealVersion > 0 && !shouldReduceMotion;
+  let globalCardIndex = 0;
 
   return (
-    <div ref={containerRef} className="w-full flex flex-col items-center select-none">
+    <div
+      ref={containerRef}
+      data-hand-container="true"
+      className="w-full flex flex-col items-center select-none"
+    >
       <div className="w-full flex flex-col items-center">
         {rows.map((rowCards, rowIndex) => {
           const count = rowCards.length;
@@ -84,6 +94,26 @@ export function MyHand({ hand, legalCards, isMyChoice, onPlayCard }: MyHandProps
                   const id = `${card.rank}${card.suit}` as CardId;
                   const isPlayable = isMyChoice && legalCards.includes(id);
                   const state = isPlayable ? "playable" : isMyChoice ? "dimmed" : "normal";
+                  const delay = Math.min(globalCardIndex * 0.035, 0.42);
+                  globalCardIndex += 1;
+
+                  if (animateDeal) {
+                    return (
+                      <m.div
+                        key={`${dealVersion}-${id}`}
+                        initial={{ y: 40, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        transition={{ type: "spring", stiffness: 360, damping: 28, delay }}
+                      >
+                        <PlayingCard
+                          cardId={id}
+                          size={cardSize}
+                          state={state}
+                          onClick={isPlayable ? (e) => onPlayCard(id, e.currentTarget.getBoundingClientRect()) : undefined}
+                        />
+                      </m.div>
+                    );
+                  }
 
                   return (
                     <PlayingCard
@@ -91,7 +121,7 @@ export function MyHand({ hand, legalCards, isMyChoice, onPlayCard }: MyHandProps
                       cardId={id}
                       size={cardSize}
                       state={state}
-                      onClick={isPlayable ? () => onPlayCard(id) : undefined}
+                      onClick={isPlayable ? (e) => onPlayCard(id, e.currentTarget.getBoundingClientRect()) : undefined}
                     />
                   );
                 })}
@@ -120,11 +150,36 @@ export function MyHand({ hand, legalCards, isMyChoice, onPlayCard }: MyHandProps
                 const isPlayable = isMyChoice && legalCards.includes(id);
                 const state = isPlayable ? "playable" : isMyChoice ? "dimmed" : "normal";
                 const leftOffset = cardIndex * step;
+                const delay = Math.min(globalCardIndex * 0.035, 0.42);
+                globalCardIndex += 1;
+
+                if (animateDeal) {
+                  return (
+                    <m.div
+                      key={`${dealVersion}-${id}`}
+                      initial={{ y: 40, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      transition={{ type: "spring", stiffness: 360, damping: 28, delay }}
+                      className="absolute top-0"
+                      style={{
+                        left: `${leftOffset}px`,
+                        zIndex: isPlayable ? 50 : cardIndex + 1,
+                      }}
+                    >
+                      <PlayingCard
+                        cardId={id}
+                        size={cardSize}
+                        state={state}
+                        onClick={isPlayable ? (e) => onPlayCard(id, e.currentTarget.getBoundingClientRect()) : undefined}
+                      />
+                    </m.div>
+                  );
+                }
 
                 return (
                   <div
                     key={id}
-                    className="absolute top-0 "
+                    className="absolute top-0"
                     style={{
                       left: `${leftOffset}px`,
                       zIndex: isPlayable ? 50 : cardIndex + 1,
@@ -134,7 +189,7 @@ export function MyHand({ hand, legalCards, isMyChoice, onPlayCard }: MyHandProps
                       cardId={id}
                       size={cardSize}
                       state={state}
-                      onClick={isPlayable ? () => onPlayCard(id) : undefined}
+                      onClick={isPlayable ? (e) => onPlayCard(id, e.currentTarget.getBoundingClientRect()) : undefined}
                     />
                   </div>
                 );

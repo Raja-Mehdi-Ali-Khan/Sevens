@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import type { CardId, PlayerView, Seat } from "@cardgame/engine";
+import { shouldPlayDeal } from "../lib/deal";
 import { getOpponents } from "../lib/layout";
 import type { LobbyMessage } from "../net/client";
+import type { PassPulseItem } from "../state/gameState";
 import { MyHand } from "./MyHand";
 import { PlayerSeat } from "./PlayerSeat";
 import { SuitTable } from "./SuitTable";
@@ -10,7 +12,9 @@ interface TableScreenProps {
   view: PlayerView;
   lobby: LobbyMessage | null;
   recentCardId?: CardId | null;
-  onPlayCard: (cardId: CardId) => void;
+  passes?: PassPulseItem[];
+  onConsumePass?: (id: number) => void;
+  onPlayCard: (cardId: CardId, rect?: DOMRect) => void;
   onLeaveRoom: () => void;
 }
 
@@ -18,15 +22,47 @@ export function TableScreen({
   view,
   lobby,
   recentCardId,
+  passes = [],
+  onConsumePass,
   onPlayCard,
   onLeaveRoom,
 }: TableScreenProps) {
   const [scoresExpanded, setScoresExpanded] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [fullscreenMessage, setFullscreenMessage] = useState<string | null>(null);
+  const [passNonces, setPassNonces] = useState<Record<number, number>>({});
   const tableScreenRef = useRef<HTMLDivElement>(null);
+  const lastAnimatedRoundRef = useRef<number | null>(null);
+  const dealVersionRef = useRef(0);
   const mySeat = view.seat;
   const opponents = getOpponents(mySeat);
+
+  const tableIsEmpty =
+    view.table.H === null &&
+    view.table.D === null &&
+    view.table.C === null &&
+    view.table.S === null;
+
+  if (shouldPlayDeal(lastAnimatedRoundRef.current, view.round, tableIsEmpty)) {
+    dealVersionRef.current += 1;
+    lastAnimatedRoundRef.current = view.round;
+  } else if (lastAnimatedRoundRef.current !== view.round) {
+    lastAnimatedRoundRef.current = view.round;
+  }
+
+  useEffect(() => {
+    if (passes.length === 0) return;
+    setPassNonces((prev) => {
+      const next = { ...prev };
+      for (const item of passes) {
+        next[item.seat] = (next[item.seat] ?? 0) + 1;
+      }
+      return next;
+    });
+    for (const item of passes) {
+      onConsumePass?.(item.id);
+    }
+  }, [passes, onConsumePass]);
 
   // Screen Wake Lock while table screen is active
   useEffect(() => {
@@ -200,30 +236,98 @@ export function TableScreen({
         )}
       </header>
 
-      {/* (b) Opponents */}
-      <section className="table-section-fixed table-opponents flex items-stretch justify-between gap-1.5 px-0.5">
-        {opponents.map(({ seat }) => {
-          return (
-            <PlayerSeat
-              key={seat}
-              name={getPlayerName(seat)}
-              cardCount={view.handCounts[seat] ?? 0}
-              playableCount={view.playableCounts[seat] ?? null}
-              isCurrentTurn={view.currentSeat === seat}
-              isBot={isPlayerBot(seat)}
-            />
-          );
-        })}
-      </section>
+      {/* (b) Opponents + Shared Suit Table */}
+      <main className="table-board-region relative">
+        <div className="w-full flex-1 min-h-0 flex flex-col justify-center gap-2 sm:gap-3">
+          {/* Mobile: 3-up opponent row above the board */}
+          <section className="flex sm:hidden items-stretch justify-between gap-1.5">
+            {opponents.map(({ seat }) => (
+              <PlayerSeat
+                key={seat}
+                seat={seat}
+                name={getPlayerName(seat)}
+                cardCount={view.handCounts[seat] ?? 0}
+                playableCount={view.playableCounts[seat] ?? null}
+                isCurrentTurn={view.currentSeat === seat}
+                isBot={isPlayerBot(seat)}
+                passNonce={passNonces[seat] ?? 0}
+                dealVersion={dealVersionRef.current}
+              />
+            ))}
+          </section>
 
-      {/* (c) The Suit Table */}
-      <main className="table-board-region">
-        <SuitTable table={view.table} recentCardId={recentCardId} />
+          {/* Desktop/Tablet: Top seat above, Left & Right seats flanking the board */}
+          {opponents.find((o) => o.position === "top") && (() => {
+            const seat = opponents.find((o) => o.position === "top")!.seat;
+            return (
+              <div className="hidden sm:flex justify-center">
+                <PlayerSeat
+                  seat={seat}
+                  name={getPlayerName(seat)}
+                  cardCount={view.handCounts[seat] ?? 0}
+                  playableCount={view.playableCounts[seat] ?? null}
+                  isCurrentTurn={view.currentSeat === seat}
+                  isBot={isPlayerBot(seat)}
+                  passNonce={passNonces[seat] ?? 0}
+                  dealVersion={dealVersionRef.current}
+                />
+              </div>
+            );
+          })()}
+
+          <div className="w-full flex items-center justify-center gap-3 min-w-0">
+            {opponents.find((o) => o.position === "left") && (() => {
+              const seat = opponents.find((o) => o.position === "left")!.seat;
+              return (
+                <div className="hidden sm:flex shrink-0">
+                  <PlayerSeat
+                    seat={seat}
+                    name={getPlayerName(seat)}
+                    cardCount={view.handCounts[seat] ?? 0}
+                    playableCount={view.playableCounts[seat] ?? null}
+                    isCurrentTurn={view.currentSeat === seat}
+                    isBot={isPlayerBot(seat)}
+                    passNonce={passNonces[seat] ?? 0}
+                    dealVersion={dealVersionRef.current}
+                  />
+                </div>
+              );
+            })()}
+
+            <div className="flex-1 min-w-0">
+              <SuitTable table={view.table} recentCardId={recentCardId} />
+            </div>
+
+            {opponents.find((o) => o.position === "right") && (() => {
+              const seat = opponents.find((o) => o.position === "right")!.seat;
+              return (
+                <div className="hidden sm:flex shrink-0">
+                  <PlayerSeat
+                    seat={seat}
+                    name={getPlayerName(seat)}
+                    cardCount={view.handCounts[seat] ?? 0}
+                    playableCount={view.playableCounts[seat] ?? null}
+                    isCurrentTurn={view.currentSeat === seat}
+                    isBot={isPlayerBot(seat)}
+                    passNonce={passNonces[seat] ?? 0}
+                    dealVersion={dealVersionRef.current}
+                  />
+                </div>
+              );
+            })()}
+          </div>
+        </div>
       </main>
 
       {/* (d) Status Line (just above hand) */}
       <div className="table-section-fixed table-status text-center">
-        <div className="inline-block rounded-full px-3 py-1 text-base font-bold text-center leading-tight theme-panel text-[var(--acc)]">
+        <div
+          className={`inline-block rounded-full px-3.5 py-1 text-sm sm:text-base font-bold text-center leading-tight border ${
+            isMyChoice
+              ? "bg-[var(--acc)] text-[var(--acc2t)] border-[var(--acc)] shadow-[var(--glow)]"
+              : "theme-panel text-[var(--acc)] border-[var(--edge)]"
+          }`}
+        >
           {getStatusLine()}
         </div>
       </div>
@@ -234,6 +338,7 @@ export function TableScreen({
           hand={view.hand}
           legalCards={view.legalCards}
           isMyChoice={isMyChoice}
+          dealVersion={dealVersionRef.current}
           onPlayCard={onPlayCard}
         />
       </footer>

@@ -1,4 +1,6 @@
-import { useState, type CSSProperties } from "react";
+import { useState, type CSSProperties, type MouseEvent } from "react";
+import { useReducedMotion } from "motion/react";
+import * as m from "motion/react-m";
 import type { CardId } from "@cardgame/engine";
 import { getCardAsset } from "../lib/cardAssets";
 import {
@@ -16,7 +18,8 @@ export interface PlayingCardProps {
   isRecent?: boolean;
   className?: string;
   style?: CSSProperties;
-  onClick?: () => void;
+  dataTile?: CardId;
+  onClick?: (event: MouseEvent<HTMLButtonElement>) => void;
 }
 
 export function PlayingCard({
@@ -26,9 +29,11 @@ export function PlayingCard({
   isRecent = false,
   className = "",
   style,
+  dataTile,
   onClick,
 }: PlayingCardProps) {
   const [imgError, setImgError] = useState(false);
+  const shouldReduceMotion = useReducedMotion();
   const alt = cardAltText(cardId);
   const isBack = cardId === "back";
   const isCardPlayable = state === "playable";
@@ -36,7 +41,7 @@ export function PlayingCard({
 
   // Card size classes
   const sizeClasses = {
-    tile: "w-full h-[18px] sm:h-[20px] text-[10px] sm:text-xs",
+    tile: "w-full h-[var(--oval-tile-h,20px)] text-[11px] sm:text-xs",
     table: "table-card-size",
     sm: "hand-card-size",
     md: "hand-card-size",
@@ -170,6 +175,22 @@ export function PlayingCard({
   };
 
   if (onClick) {
+    if (isCardPlayable && !shouldReduceMotion) {
+      return (
+        <m.button
+          type="button"
+          onClick={onClick}
+          whileTap={{ scale: 0.96, transition: { duration: 0.08 } }}
+          aria-label={alt}
+          style={style}
+          data-tile={dataTile}
+          className={`${baseClasses} p-0 border-0 bg-transparent`}
+        >
+          {renderContent()}
+        </m.button>
+      );
+    }
+
     return (
       <button
         type="button"
@@ -177,6 +198,7 @@ export function PlayingCard({
         disabled={isCardDimmed}
         aria-label={alt}
         style={style}
+        data-tile={dataTile}
         className={`${baseClasses} p-0 border-0 bg-transparent`}
       >
         {renderContent()}
@@ -185,7 +207,7 @@ export function PlayingCard({
   }
 
   return (
-    <div className={baseClasses} aria-label={alt} style={style}>
+    <div className={baseClasses} aria-label={alt} style={style} data-tile={dataTile}>
       {renderContent()}
     </div>
   );

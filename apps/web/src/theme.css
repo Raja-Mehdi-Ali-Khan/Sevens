@@ -315,18 +315,43 @@
   pointer-events: none;
 }
 
-.theme-open-slot {
+.theme-open-slot-tile {
   display: flex;
-  position: relative;
-  width: var(--tile-width, 36px);
-  height: var(--tile-height, 46px);
-  flex-direction: column;
+  width: 100%;
+  height: 100%;
   align-items: center;
   justify-content: center;
-  border: 1px dashed var(--acc);
+  gap: 2px;
+  border: 1px dashed color-mix(in srgb, var(--acc) 70%, transparent);
   border-radius: 6px;
-  background: var(--tile);
+  background: color-mix(in srgb, var(--tile) 80%, transparent);
   color: var(--acc);
+  font-size: 11px;
+}
+
+.theme-oval-table {
+  border: 1.5px solid var(--edge);
+  border-radius: 50%;
+  padding: 32px 26px;
+  background: radial-gradient(
+    ellipse at 50% 50%,
+    color-mix(in srgb, var(--chip) 90%, var(--acc) 10%),
+    var(--board) 78%
+  );
+  box-shadow: inset 0 0 28px rgb(0 0 0 / 45%), 0 8px 24px rgb(0 0 0 / 30%);
+}
+
+@media (min-width: 640px) {
+  .theme-oval-table {
+    padding: 40px 38px;
+  }
+}
+
+.theme-suit-col {
+  border: 1px solid color-mix(in srgb, var(--edge) 45%, transparent);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--tile) 55%, transparent);
+  overflow: hidden;
 }
 
 .theme-playable-card {
@@ -340,8 +365,10 @@
 }
 
 .table-screen {
-  --tile-width: 64px;
-  --tile-height: 78px;
+  --oval-tile-h: 20px;
+  --oval-tile-gap: 2px;
+  --tile-width: clamp(48px, 16.5vw, 64px);
+  --tile-height: clamp(60px, 20vw, 78px);
   --tile-step: 16px;
   --hand-card-width: 78px;
   --hand-card-height: 108px;
@@ -374,16 +401,23 @@
   flex: 1 1 auto;
   flex-direction: column;
   min-height: 0;
-  overflow-y: hidden;
-  overflow-x: hidden;
+  overflow-y: auto;
+  overflow-x: auto;
 }
 
 .table-board-region > .theme-board {
   flex: 0 1 auto;
   min-height: 0;
-  max-height: 100%;
   margin-block: auto;
-  overflow: hidden;
+}
+
+.table-seven-baseline {
+  width: 100%;
+  height: 1px;
+  align-self: start;
+  background: color-mix(in srgb, var(--acc) 28%, transparent);
+  pointer-events: none;
+  z-index: 0;
 }
 
 .table-status {
@@ -413,9 +447,11 @@
 
 .table-suit-stack {
   display: grid;
-  grid-template-rows: repeat(13, minmax(0, var(--tile-step, 21px)));
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: repeat(13, var(--oval-tile-h, 20px));
+  row-gap: var(--oval-tile-gap, 2px);
   justify-items: center;
-  height: calc(12 * var(--tile-step, 21px) + var(--tile-height, 42px));
+  align-items: center;
   min-height: 0;
 }
 
@@ -428,18 +464,20 @@
 }
 
 .table-board-card.theme-table-tile-recent {
-  z-index: 1000;
+  z-index: 30;
 }
 
 @media (max-height: 760px) {
   .table-screen {
-    --tile-width: 60px;
-    --tile-height: 74px;
+    --oval-tile-h: 18px;
+    --oval-tile-gap: 2px;
+    --tile-width: clamp(46px, 16vw, 60px);
+    --tile-height: clamp(58px, 19.5vw, 74px);
     --tile-step: 14px;
     --hand-card-width: 70px;
     --hand-card-height: 98px;
     --chip-padding: 8px;
-    --section-gap: 10px;
+    --section-gap: 8px;
     --opponents-height: 60px;
     --board-gap-extra: 0px;
     --hand-row-overlap: 36px;
@@ -448,13 +486,15 @@
 
 @media (max-height: 680px) {
   .table-screen {
-    --tile-width: 56px;
-    --tile-height: 68px;
+    --oval-tile-h: 16px;
+    --oval-tile-gap: 1.5px;
+    --tile-width: clamp(44px, 15.5vw, 56px);
+    --tile-height: clamp(54px, 18.5vw, 68px);
     --tile-step: 12px;
     --hand-card-width: 62px;
     --hand-card-height: 86px;
     --chip-padding: 6px;
-    --section-gap: 8px;
+    --section-gap: 6px;
     --opponents-height: 56px;
     --board-gap-extra: 0px;
     --hand-row-overlap: 30px;
@@ -463,13 +503,15 @@
 
 @media (max-height: 600px) {
   .table-screen {
-    --tile-width: 52px;
-    --tile-height: 64px;
+    --oval-tile-h: 15px;
+    --oval-tile-gap: 1px;
+    --tile-width: clamp(42px, 15vw, 52px);
+    --tile-height: clamp(52px, 18vw, 64px);
     --tile-step: 12px;
     --hand-card-width: 54px;
     --hand-card-height: 76px;
     --chip-padding: 4px;
-    --section-gap: 8px;
+    --section-gap: 6px;
     --opponents-height: 52px;
     --board-gap-extra: 0px;
     --hand-row-overlap: 24px;

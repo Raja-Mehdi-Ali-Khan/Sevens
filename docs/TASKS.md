@@ -40,7 +40,7 @@ Do phases in order. Do not start a phase until the previous one is green (`npm r
 - [x] Obsidian Gold theme with emblem watermark and favicon (replace `apps/web/src/assets/brand/emblem.svg` and `apps/web/public/favicon.svg` when new branding is supplied)
 
 ## Phase 4b: Animations  Agent: Antigravity
-- [ ] Card play and deal animations, transitions, sound toggle (optional)
+- [x] Card play and deal animations, transitions, sound toggle (optional)
 
 ## Phase 4c: Low-card hint snapshot
 - [x] Engine snapshots low-card playable counts after each seat's own turn; opponent chips display the count only

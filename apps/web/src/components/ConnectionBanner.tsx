@@ -1,3 +1,5 @@
+import { AnimatePresence, useReducedMotion } from "motion/react";
+import * as m from "motion/react-m";
 import type { ConnectionStatus } from "../net/client";
 
 interface ConnectionBannerProps {
@@ -13,12 +15,19 @@ export function ConnectionBanner({
   serverError,
   onClearError,
 }: ConnectionBannerProps) {
+  const shouldReduceMotion = useReducedMotion();
+
+  let bannerKey: string | null = null;
+  let content: React.ReactNode = null;
+  let toneClass = "text-[var(--acc)]";
+  let live: "assertive" | "polite" = "polite";
+
   if (serverError) {
-    return (
-      <aside
-        aria-live="assertive"
-        className="fixed top-0 left-0 right-0 z-50 max-w-[480px] mx-auto theme-panel text-[var(--rt)] px-3 min-h-[44px] flex items-center justify-between text-xs font-medium shadow-md"
-      >
+    bannerKey = "error";
+    toneClass = "text-[var(--rt)]";
+    live = "assertive";
+    content = (
+      <>
         <span className="truncate">{serverError}</span>
         <button
           type="button"
@@ -29,42 +38,36 @@ export function ConnectionBanner({
         >
           &times;
         </button>
-      </aside>
+      </>
     );
+  } else if (status === "reconnecting") {
+    bannerKey = "reconnecting";
+    content = message || "Reconnecting to server...";
+  } else if (status === "connecting") {
+    bannerKey = "connecting";
+    content = message || "Connecting to server...";
+  } else if (status === "disconnected" && message) {
+    bannerKey = "disconnected";
+    toneClass = "text-[var(--mut)]";
+    content = message;
   }
 
-  if (status === "reconnecting") {
-    return (
-      <aside
-        aria-live="polite"
-        className="fixed top-0 left-0 right-0 z-50 max-w-[480px] mx-auto theme-panel text-[var(--acc)] px-3 min-h-[44px] flex items-center justify-center text-xs font-medium shadow-md"
-      >
-        {message || "Reconnecting to server..."}
-      </aside>
-    );
-  }
-
-  if (status === "connecting") {
-    return (
-      <aside
-        aria-live="polite"
-        className="fixed top-0 left-0 right-0 z-50 max-w-[480px] mx-auto theme-panel text-[var(--acc)] px-3 min-h-[44px] flex items-center justify-center text-xs font-medium shadow-md"
-      >
-        {message || "Connecting to server..."}
-      </aside>
-    );
-  }
-
-  if (status === "disconnected" && message) {
-    return (
-      <aside
-        aria-live="polite"
-        className="fixed top-0 left-0 right-0 z-50 max-w-[480px] mx-auto theme-panel text-[var(--mut)] px-3 min-h-[44px] flex items-center justify-center text-xs font-medium shadow-md"
-      >
-        {message}
-      </aside>
-    );
-  }
-
-  return null;
+  return (
+    <AnimatePresence>
+      {bannerKey && (
+        <m.aside
+          key={bannerKey}
+          aria-live={live}
+          initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0, transition: { duration: shouldReduceMotion ? 0.12 : 0.15, ease: "easeOut" } }}
+          exit={shouldReduceMotion ? { opacity: 0, transition: { duration: 0.12 } } : { opacity: 0, y: -8, transition: { duration: 0.12, ease: "easeIn" } }}
+          className={`fixed top-0 left-0 right-0 z-50 max-w-[480px] mx-auto theme-panel ${toneClass} px-3 min-h-[44px] flex items-center ${
+            serverError ? "justify-between" : "justify-center"
+          } text-xs font-medium shadow-md`}
+        >
+          {content}
+        </m.aside>
+      )}
+    </AnimatePresence>
+  );
 }
