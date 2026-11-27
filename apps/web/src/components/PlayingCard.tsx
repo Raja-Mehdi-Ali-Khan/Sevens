@@ -141,11 +141,10 @@ export function PlayingCard({
       <div
         className={`w-full h-full border border-[var(--edge)] rounded-lg px-1.5 py-1 flex flex-col justify-between bg-[var(--face)] ${textColor} font-bold shadow-xs`}
       >
-        <div className="flex items-center justify-between text-xs sm:text-sm leading-none">
-          <span>{formatRank(card.rank)}</span>
-          <span className="text-[11px] sm:text-xs">{formatSuit(card.suit)}</span>
+        <div className="text-left text-base sm:text-lg font-extrabold leading-none">
+          {formatRank(card.rank)}
         </div>
-        <div className="text-center text-lg sm:text-xl leading-none my-auto">
+        <div className="text-center text-2xl sm:text-3xl leading-none my-auto">
           {formatSuit(card.suit)}
         </div>
       </div>
