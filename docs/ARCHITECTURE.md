@@ -109,8 +109,8 @@ export function getPlayerView(state: GameState, seat: Seat): PlayerView;
      - `await_choice`: start `TURN_TIMEOUT_MS`; on a valid `play` message, apply it; on timeout, play the highest-rank option.
   3. If `phase === 'round_over'`: wait `NEXT_ROUND_DELAY_MS`, then `startNextRound`.
   4. If `phase === 'game_over'`: keep the room open briefly, then dispose.
-- **Disconnects:** allow reconnection for `RECONNECT_WINDOW_MS`; after that a bot plays that seat.
-- **Host:** the lowest connected seat before the game starts. Only the host may send `start`, and only when 4 players are seated.
+- **Disconnects & empty-room cleanup:** allow reconnection for `RECONNECT_WINDOW_MS`; after that a bot plays that seat (keeping the player's name and marked `isBot: true`). If no human seat is connected and no human seat has an active reconnect window, start an `EMPTY_ROOM_DISPOSE_MS` (30s) timer; cancel it if a human reconnects, and when it fires clear all timers and dispose the room.
+- **Host & starting:** the lowest connected seat before the game starts. Only the host may send `start`, whenever the room is in the lobby and at least 1 human is seated. On `start`, vacant seats are filled by bots with random names (session seats only, not Colyseus clients) and the room is locked (`this.lock()`) so nobody can join mid-game.
 - Timing constants live in `apps/server/src/config.ts`.
 
 ## 4. Message protocol (JSON over Colyseus messages, validated with zod)
@@ -118,13 +118,13 @@ Client -> server:
 | type | payload | rules |
 |---|---|---|
 | join options | `{ name: string (1-20 chars), code?: string }` | with `code` joins an existing room; without creates one |
-| `start` | none | host only, lobby only, 4 players seated |
+| `start` | none | host only, lobby only, at least 1 human seated |
 | `play` | `{ card: CardId }` | only when it is that seat's `await_choice` turn |
 
 Server -> client:
 | type | payload |
 |---|---|
-| `lobby` | `{ code, hostSeat, players: { seat, name, connected }[] }` |
+| `lobby` | `{ code, hostSeat, players: { seat, name: string | null, connected, isBot }[] }` (all 4 seats 0..3; vacant seats in lobby have `name: null, connected: false, isBot: false`) |
 | `view` | `PlayerView` |
 | `event` | `GameEvent` (for toasts and animations) |
 | `error` | `{ code: string, message: string }` |

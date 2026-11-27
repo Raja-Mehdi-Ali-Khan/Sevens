@@ -3,10 +3,17 @@
 If code and this file disagree, this file wins. If this file is unclear, ask; do not guess.
 
 ## 1. Overview
-- Exactly 4 players, one standard 52-card deck, no jokers.
+- Exactly 4 seats, one standard 52-card deck, no jokers.
 - A game is **7 rounds**. In each round, players race to empty their hand by building each suit outward from its 7.
 - The round winner scores 0. Everyone else scores penalty points for the cards left in hand.
 - After round 7, the **lowest total wins**. Ties share the win.
+
+### Starting the game
+- The host can start the game at any time from the lobby with **1 to 4 human players** seated.
+- Any vacant seats are filled by bots with random names so the game always has 4 active seats.
+- Bots play the legal card with the highest rank (breaking ties by suit order `H`, `D`, `C`, `S`).
+- When the game starts, the room locks and no new players can join mid-game.
+- If no human player remains connected and none has an active reconnect window, the room closes after 30 seconds (`EMPTY_ROOM_DISPOSE_MS`).
 
 ## 2. Terms
 | Term | Definition |
@@ -79,10 +86,12 @@ A pass is public by design: everyone learns that seat had no playable card.
 
 ## 8. Timing policies (server only, not engine rules)
 Defaults, defined as constants in `apps/server/src/config.ts`:
-- `AUTO_MOVE_DELAY_MS = 1000`: pause before an automatic play or pass, so players can see it.
+- `AUTO_MOVE_DELAY_MS = 1000`: pause before an automatic play or pass for a human seat, so players can see it.
+- `BOT_MOVE_MIN_MS = 700` and `BOT_MOVE_MAX_MS = 1500`: random delay range for every bot turn (including `auto_play`, `auto_pass`, and `await_choice`).
 - `TURN_TIMEOUT_MS = 30000`: for an `await_choice` turn, on timeout the server plays the legal card with the highest rank.
 - `RECONNECT_WINDOW_MS = 60000`: after a disconnect, then a simple bot takes the seat (bot plays the highest-rank legal card).
 - `NEXT_ROUND_DELAY_MS = 5000`: pause on the round summary before dealing the next round.
+- `EMPTY_ROOM_DISPOSE_MS = 30000`: grace period before disposing a room with no connected humans and no active reconnect windows.
 
 ## 9. Out of scope for v1
 5-player mode, spectators, accounts, chat, persistence, tiebreakers, custom rule variants.
