@@ -332,7 +332,7 @@
 .theme-oval-table {
   border: 1.5px solid var(--edge);
   border-radius: 50%;
-  padding: 32px 26px;
+  padding: 24px 18px;
   background: radial-gradient(
     ellipse at 50% 50%,
     color-mix(in srgb, var(--chip) 90%, var(--acc) 10%),
@@ -343,7 +343,7 @@
 
 @media (min-width: 640px) {
   .theme-oval-table {
-    padding: 40px 38px;
+    padding: 36px 34px;
   }
 }
 
@@ -370,13 +370,13 @@
   --tile-width: clamp(48px, 16.5vw, 64px);
   --tile-height: clamp(60px, 20vw, 78px);
   --tile-step: 16px;
-  --hand-card-width: 78px;
-  --hand-card-height: 108px;
+  --hand-card-width: 54px;
+  --hand-card-height: 64px;
   --chip-padding: 6px 8px;
   --section-gap: 8px;
   --opponents-height: 64px;
   --board-gap-extra: 0px;
-  --hand-row-overlap: 40px;
+  --hand-row-overlap: 18px;
   box-sizing: border-box;
   width: 100%;
   height: auto;
@@ -474,13 +474,13 @@
     --tile-width: clamp(46px, 16vw, 60px);
     --tile-height: clamp(58px, 19.5vw, 74px);
     --tile-step: 14px;
-    --hand-card-width: 70px;
-    --hand-card-height: 98px;
+    --hand-card-width: 50px;
+    --hand-card-height: 60px;
     --chip-padding: 8px;
     --section-gap: 8px;
     --opponents-height: 60px;
     --board-gap-extra: 0px;
-    --hand-row-overlap: 36px;
+    --hand-row-overlap: 16px;
   }
 }
 
@@ -491,13 +491,13 @@
     --tile-width: clamp(44px, 15.5vw, 56px);
     --tile-height: clamp(54px, 18.5vw, 68px);
     --tile-step: 12px;
-    --hand-card-width: 62px;
-    --hand-card-height: 86px;
+    --hand-card-width: 46px;
+    --hand-card-height: 56px;
     --chip-padding: 6px;
     --section-gap: 6px;
     --opponents-height: 56px;
     --board-gap-extra: 0px;
-    --hand-row-overlap: 30px;
+    --hand-row-overlap: 14px;
   }
 }
 
@@ -508,13 +508,13 @@
     --tile-width: clamp(42px, 15vw, 52px);
     --tile-height: clamp(52px, 18vw, 64px);
     --tile-step: 12px;
-    --hand-card-width: 54px;
-    --hand-card-height: 76px;
+    --hand-card-width: 44px;
+    --hand-card-height: 52px;
     --chip-padding: 4px;
     --section-gap: 6px;
     --opponents-height: 52px;
     --board-gap-extra: 0px;
-    --hand-row-overlap: 24px;
+    --hand-row-overlap: 12px;
   }
 
   .table-mini-backs {

@@ -1,8 +1,7 @@
-import { useState, type CSSProperties, type MouseEvent } from "react";
+import { type CSSProperties, type MouseEvent } from "react";
 import { useReducedMotion } from "motion/react";
 import * as m from "motion/react-m";
 import type { CardId } from "@cardgame/engine";
-import { getCardAsset } from "../lib/cardAssets";
 import {
   cardAltText,
   formatRank,
@@ -32,7 +31,6 @@ export function PlayingCard({
   dataTile,
   onClick,
 }: PlayingCardProps) {
-  const [imgError, setImgError] = useState(false);
   const shouldReduceMotion = useReducedMotion();
   const alt = cardAltText(cardId);
   const isBack = cardId === "back";
@@ -123,31 +121,13 @@ export function PlayingCard({
     );
   }
 
-  // 'table', 'sm', 'md', 'lg' use raster card faces (or CSS if the asset fails)
-  const assetUrl = getCardAsset(cardId);
-
+  // 'table', 'sm', 'md', 'lg' use simple, compact squarish card faces
   const renderContent = () => {
-    if (assetUrl && !imgError) {
-      return (
-        <img
-          src={assetUrl}
-          alt={alt}
-          width={167}
-          height={243}
-          loading="lazy"
-          decoding="async"
-          onError={() => setImgError(true)}
-          className="w-full h-full object-contain pointer-events-none drop-shadow-2xs rounded bg-transparent"
-        />
-      );
-    }
-
-    // CSS Fallback rendering if SVG is missing or failed to load
     if (isBack) {
       return (
-        <div className="w-full h-full border-2 border-[var(--acc)] rounded-md bg-[var(--back)] flex items-center justify-center shadow-inner">
-          <div className="w-[85%] h-[85%] border-2 border-[var(--acc)] rounded-sm bg-[var(--chip)] flex items-center justify-center">
-            <span className="text-[var(--acc)] text-xs font-bold">♠♥♦♣</span>
+        <div className="w-full h-full border border-[var(--acc)] rounded-lg bg-[var(--back)] flex items-center justify-center shadow-xs">
+          <div className="w-[80%] h-[80%] border border-[var(--edge)] rounded-md bg-[var(--chip)] flex items-center justify-center">
+            <span className="text-[var(--acc)] text-[11px] font-bold">7</span>
           </div>
         </div>
       );
@@ -159,16 +139,13 @@ export function PlayingCard({
 
     return (
       <div
-        className={`w-full h-full border border-[var(--edge)] rounded-md p-1 flex flex-col justify-between bg-[var(--face)] ${textColor} font-bold`}
+        className={`w-full h-full border border-[var(--edge)] rounded-lg px-1.5 py-1 flex flex-col justify-between bg-[var(--face)] ${textColor} font-bold shadow-xs`}
       >
-        <div className="text-left text-xs leading-none">
-          <div>{formatRank(card.rank)}</div>
-          <div className="text-[10px]">{formatSuit(card.suit)}</div>
+        <div className="text-left text-base sm:text-lg font-extrabold leading-none">
+          {formatRank(card.rank)}
         </div>
-        <div className="text-center text-lg leading-none">{formatSuit(card.suit)}</div>
-        <div className="text-right text-xs leading-none rotate-180">
-          <div>{formatRank(card.rank)}</div>
-          <div className="text-[10px]">{formatSuit(card.suit)}</div>
+        <div className="text-center text-2xl sm:text-3xl leading-none my-auto">
+          {formatSuit(card.suit)}
         </div>
       </div>
     );

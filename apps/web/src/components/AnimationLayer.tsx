@@ -65,7 +65,7 @@ function FlightClone({
 }) {
   const [showFace, setShowFace] = useState(!flight.isOpponent);
   const finishedRef = useRef(false);
-  const durationSec = flight.isOpponent ? 0.38 : 0.32;
+  const durationSec = flight.isOpponent ? 0.45 : 0.38;
 
   useEffect(() => {
     if (!flight.isOpponent) return;
@@ -107,6 +107,8 @@ function FlightClone({
         width: flight.width,
         height: flight.height,
         transformOrigin: "center center",
+        boxShadow: "0 10px 26px rgb(0 0 0 / 55%), 0 0 0 2px var(--acc)",
+        borderRadius: 8,
       }}
     >
       <div className="relative w-full h-full">
@@ -114,13 +116,23 @@ function FlightClone({
           className="absolute inset-0 transition-opacity duration-75"
           style={{ opacity: showFace ? 0 : 1 }}
         >
-          <PlayingCard cardId="back" size="md" className="w-full h-full" />
+          <PlayingCard
+            cardId="back"
+            size="md"
+            className="w-full h-full"
+            style={{ width: "100%", height: "100%", minWidth: 0 }}
+          />
         </div>
         <div
           className="absolute inset-0 transition-opacity duration-75"
           style={{ opacity: showFace ? 1 : 0 }}
         >
-          <PlayingCard cardId={flight.cardId} size="md" className="w-full h-full" />
+          <PlayingCard
+            cardId={flight.cardId}
+            size="md"
+            className="w-full h-full"
+            style={{ width: "100%", height: "100%", minWidth: 0 }}
+          />
         </div>
       </div>
     </m.div>
@@ -171,20 +183,26 @@ export function AnimationLayer({
         continue;
       }
 
-      const fromRect = resolveSourceRect(play, id, mySeat, pendingTapRef);
-      if (!fromRect) {
-        onConsumePlay(play.id);
-        continue;
-      }
+      // Hide the destination tile immediately so it never flashes before the flight starts
+      addInFlightCard(id);
+      const watchdog = window.setTimeout(() => {
+        removeInFlightCard(id);
+      }, TILE_HIDE_WATCHDOG_MS);
+      watchdogsRef.current.set(play.id, watchdog);
 
       const startedAt = performance.now();
+      let resolvedFromRect: RectLike | null = null;
       const tryLaunch = () => {
+        if (!resolvedFromRect) {
+          resolvedFromRect = resolveSourceRect(play, id, mySeat, pendingTapRef);
+        }
+        const fromRect = resolvedFromRect;
         const tileEl = document.querySelector(`[data-tile="${id}"]`);
         const toRect = tileEl ? toRectLike(tileEl.getBoundingClientRect()) : null;
 
-        if (toRect && toRect.width > 0 && toRect.height > 0) {
-          const cloneWidth = fromRect.width > 0 ? Math.min(fromRect.width, 78) : 56;
-          const cloneHeight = fromRect.height > 0 ? Math.min(fromRect.height, 108) : 78;
+        if (fromRect && toRect && toRect.width > 0 && toRect.height > 0) {
+          const cloneWidth = fromRect.width > 0 ? Math.min(fromRect.width, 54) : 48;
+          const cloneHeight = fromRect.height > 0 ? Math.min(fromRect.height, 64) : 58;
           const adjustedFrom: RectLike = {
             left: fromRect.left + (fromRect.width - cloneWidth) / 2,
             top: fromRect.top + (fromRect.height - cloneHeight) / 2,
@@ -192,12 +210,6 @@ export function AnimationLayer({
             height: cloneHeight,
           };
           const geometry = flightGeometry(adjustedFrom, toRect);
-          addInFlightCard(id);
-
-          const watchdog = window.setTimeout(() => {
-            removeInFlightCard(id);
-          }, TILE_HIDE_WATCHDOG_MS);
-          watchdogsRef.current.set(play.id, watchdog);
 
           const nextFlight: ActiveFlight = {
             id: play.id,
@@ -231,6 +243,12 @@ export function AnimationLayer({
         if (performance.now() - startedAt < TARGET_SEARCH_TIMEOUT_MS) {
           requestAnimationFrame(tryLaunch);
         } else {
+          const w = watchdogsRef.current.get(play.id);
+          if (w !== undefined) {
+            window.clearTimeout(w);
+            watchdogsRef.current.delete(play.id);
+          }
+          removeInFlightCard(id);
           onConsumePlay(play.id);
         }
       };
