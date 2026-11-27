@@ -236,31 +236,14 @@ export function TableScreen({
         )}
       </header>
 
-      {/* (b) Opponents + Shared Suit Table */}
+      {/* (b) Circular Opponents + Oval Table */}
       <main className="table-board-region relative">
-        <div className="w-full flex-1 min-h-0 flex flex-col justify-center gap-2 sm:gap-3">
-          {/* Mobile: 3-up opponent row above the board */}
-          <section className="flex sm:hidden items-stretch justify-between gap-1.5">
-            {opponents.map(({ seat }) => (
-              <PlayerSeat
-                key={seat}
-                seat={seat}
-                name={getPlayerName(seat)}
-                cardCount={view.handCounts[seat] ?? 0}
-                playableCount={view.playableCounts[seat] ?? null}
-                isCurrentTurn={view.currentSeat === seat}
-                isBot={isPlayerBot(seat)}
-                passNonce={passNonces[seat] ?? 0}
-                dealVersion={dealVersionRef.current}
-              />
-            ))}
-          </section>
-
-          {/* Desktop/Tablet: Top seat above, Left & Right seats flanking the board */}
+        <div className="w-full flex-1 min-h-0 flex flex-col justify-center gap-1.5 sm:gap-2.5">
+          {/* Top seat centered above the oval */}
           {opponents.find((o) => o.position === "top") && (() => {
             const seat = opponents.find((o) => o.position === "top")!.seat;
             return (
-              <div className="hidden sm:flex justify-center">
+              <div className="flex justify-center">
                 <PlayerSeat
                   seat={seat}
                   name={getPlayerName(seat)}
@@ -275,11 +258,12 @@ export function TableScreen({
             );
           })()}
 
-          <div className="w-full flex items-center justify-center gap-3 min-w-0">
+          {/* Middle row: Left seat, Oval table, Right seat */}
+          <div className="w-full flex items-center justify-center gap-1.5 sm:gap-3 min-w-0">
             {opponents.find((o) => o.position === "left") && (() => {
               const seat = opponents.find((o) => o.position === "left")!.seat;
               return (
-                <div className="hidden sm:flex shrink-0">
+                <div className="flex shrink-0">
                   <PlayerSeat
                     seat={seat}
                     name={getPlayerName(seat)}
@@ -301,7 +285,7 @@ export function TableScreen({
             {opponents.find((o) => o.position === "right") && (() => {
               const seat = opponents.find((o) => o.position === "right")!.seat;
               return (
-                <div className="hidden sm:flex shrink-0">
+                <div className="flex shrink-0">
                   <PlayerSeat
                     seat={seat}
                     name={getPlayerName(seat)}

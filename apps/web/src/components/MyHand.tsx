@@ -19,8 +19,8 @@ export function MyHand({ hand, legalCards, isMyChoice, dealVersion = 0, onPlayCa
   const shouldReduceMotion = useReducedMotion();
   const [metrics, setMetrics] = useState(() => ({
     containerWidth: typeof window !== "undefined" ? Math.min(window.innerWidth - 16, 464) : 344,
-    cardWidth: 78,
-    cardHeight: 108,
+    cardWidth: 54,
+    cardHeight: 64,
   }));
 
   useEffect(() => {
@@ -31,8 +31,8 @@ export function MyHand({ hand, legalCards, isMyChoice, dealVersion = 0, onPlayCa
       const w = el.getBoundingClientRect().width;
       if (w > 0) {
         const styles = getComputedStyle(el);
-        const cardWidth = Number.parseFloat(styles.getPropertyValue("--hand-card-width")) || 78;
-        const cardHeight = Number.parseFloat(styles.getPropertyValue("--hand-card-height")) || 108;
+        const cardWidth = Number.parseFloat(styles.getPropertyValue("--hand-card-width")) || 54;
+        const cardHeight = Number.parseFloat(styles.getPropertyValue("--hand-card-height")) || 64;
         setMetrics((current) =>
           current.containerWidth === w && current.cardWidth === cardWidth && current.cardHeight === cardHeight
             ? current

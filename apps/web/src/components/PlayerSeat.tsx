@@ -46,7 +46,7 @@ export function PlayerSeat({
           ? { x: [0, -4, 4, -3, 3, 0], transition: { duration: 0.3 } }
           : undefined
       }
-      className={`theme-seat flex-1 sm:flex-none sm:w-[96px] min-w-0 flex flex-col items-center text-center select-none px-2 py-1.5 ${
+      className={`theme-seat w-[58px] sm:w-[92px] min-w-0 flex flex-col items-center text-center select-none px-1.5 py-1 sm:px-2 sm:py-1.5 ${
         isCurrentTurn ? "theme-turn" : ""
       }`}
     >

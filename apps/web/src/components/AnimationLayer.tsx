@@ -183,8 +183,8 @@ export function AnimationLayer({
         const toRect = tileEl ? toRectLike(tileEl.getBoundingClientRect()) : null;
 
         if (toRect && toRect.width > 0 && toRect.height > 0) {
-          const cloneWidth = fromRect.width > 0 ? Math.min(fromRect.width, 78) : 56;
-          const cloneHeight = fromRect.height > 0 ? Math.min(fromRect.height, 108) : 78;
+          const cloneWidth = fromRect.width > 0 ? Math.min(fromRect.width, 54) : 48;
+          const cloneHeight = fromRect.height > 0 ? Math.min(fromRect.height, 64) : 58;
           const adjustedFrom: RectLike = {
             left: fromRect.left + (fromRect.width - cloneWidth) / 2,
             top: fromRect.top + (fromRect.height - cloneHeight) / 2,
