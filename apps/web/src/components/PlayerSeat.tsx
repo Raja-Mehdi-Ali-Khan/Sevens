@@ -46,42 +46,47 @@ export function PlayerSeat({
           ? { x: [0, -4, 4, -3, 3, 0], transition: { duration: 0.3 } }
           : undefined
       }
-      className={`theme-seat w-[58px] sm:w-[92px] min-w-0 flex flex-col items-center text-center select-none px-1.5 py-1 sm:px-2 sm:py-1.5 ${
-        isCurrentTurn ? "theme-turn" : ""
-      }`}
+      className="flex flex-col items-center text-center select-none min-w-[64px] sm:min-w-[84px]"
     >
-      <div className="flex items-center justify-center gap-1.5 w-full min-w-0">
-        <m.div
-          key={dealVersion > 0 && !shouldReduceMotion ? `deal-${dealVersion}` : "avatar"}
-          initial={dealVersion > 0 && !shouldReduceMotion ? { opacity: 0 } : false}
-          animate={{ opacity: 1, transition: { duration: shouldReduceMotion ? 0.12 : 0.25 } }}
-          className={`w-6 h-6 sm:w-8 sm:h-8 shrink-0 rounded-full border bg-[var(--back)] flex items-center justify-center font-bold text-xs sm:text-sm text-[var(--tx)] ${
-            isCurrentTurn
-              ? "border-[var(--acc)] text-[var(--acc)]"
-              : "border-[var(--edge)]"
-          }`}
-        >
-          {initial}
-        </m.div>
-        <span
-          className="truncate text-xs font-bold leading-tight text-[var(--tx)]"
+      <m.div
+        key={dealVersion > 0 && !shouldReduceMotion ? `deal-${dealVersion}` : "avatar"}
+        initial={dealVersion > 0 && !shouldReduceMotion ? { opacity: 0 } : false}
+        animate={{ opacity: 1, transition: { duration: shouldReduceMotion ? 0.12 : 0.25 } }}
+        className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 bg-[var(--chip)] flex items-center justify-center font-bold text-sm sm:text-base text-[var(--tx)] shadow-md ${
+          isCurrentTurn
+            ? "border-[var(--acc)] text-[var(--acc)] shadow-[var(--glow)]"
+            : "border-[var(--acc)]/75"
+        }`}
+      >
+        {initial}
+      </m.div>
+
+      <div
+        className={`mt-1 px-1.5 py-0.5 rounded-md bg-[var(--chip)]/95 border max-w-[78px] sm:max-w-[110px] ${
+          isCurrentTurn ? "border-[var(--acc)]" : "border-[var(--edge)]/70"
+        }`}
+      >
+        <div
+          className="truncate text-[11px] sm:text-xs font-bold leading-tight text-[var(--tx)]"
           title={name}
         >
           {name}
-        </span>
+        </div>
+        <div className="text-[10px] font-medium leading-tight text-[var(--mut)] whitespace-nowrap">
+          {cardCount} {cardCount === 1 ? "card" : "cards"}
+        </div>
       </div>
 
-      <div className="mt-1 flex flex-wrap items-center justify-center gap-1">
-        <span className="text-[11px] font-medium leading-tight text-[var(--mut)] whitespace-nowrap">
-          {cardCount} {cardCount === 1 ? "card" : "cards"}
-        </span>
-        {playableCount !== null && (
-          <span className="theme-seat-hint" aria-label={`${playableCount} playable cards`}>
-            {hintLabel(playableCount)}
-          </span>
-        )}
-        {isBot && <span className="theme-bot-tag">BOT</span>}
-      </div>
+      {(isBot || playableCount !== null) && (
+        <div className="mt-0.5 flex flex-wrap items-center justify-center gap-1">
+          {playableCount !== null && (
+            <span className="theme-seat-hint" aria-label={`${playableCount} playable cards`}>
+              {hintLabel(playableCount)}
+            </span>
+          )}
+          {isBot && <span className="theme-bot-tag">BOT</span>}
+        </div>
+      )}
     </m.div>
   );
 }

@@ -36,7 +36,7 @@ function SuitTableCard({ id, rank, isRecent }: SuitTableCardProps) {
 export function SuitTable({ table, recentCardId }: SuitTableProps) {
   return (
     <div
-      className="theme-oval-table w-full max-w-[360px] sm:max-w-[440px] mx-auto"
+      className="w-full max-w-[300px] sm:max-w-[340px] mx-auto"
       data-suit-board="true"
     >
       {/* 4 distinct suit columns with integrated headers and aligned 7s baseline */}
