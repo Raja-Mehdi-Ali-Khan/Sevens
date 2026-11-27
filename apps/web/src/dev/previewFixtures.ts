@@ -41,9 +41,9 @@ export const tablePreviewLobby: LobbyMessage = {
   code: "ABCDE",
   hostSeat: 0,
   players: [
-    { seat: 0, name: "You", connected: true },
-    { seat: 1, name: "Morgan", connected: true },
-    { seat: 2, name: "Taylor", connected: true },
-    { seat: 3, name: "Casey", connected: true },
+    { seat: 0, name: "You", connected: true, isBot: false },
+    { seat: 1, name: "Morgan", connected: true, isBot: false },
+    { seat: 2, name: "Taylor", connected: true, isBot: false },
+    { seat: 3, name: "Casey", connected: false, isBot: true },
   ],
 };

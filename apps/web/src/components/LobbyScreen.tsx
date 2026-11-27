@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Seat } from "@cardgame/engine";
+import { botCount, startButtonLabel } from "../lib/lobby";
 import type { LobbyMessage } from "../net/client";
 
 interface LobbyScreenProps {
@@ -16,6 +17,49 @@ export function LobbyScreen({
   onLeaveRoom,
 }: LobbyScreenProps) {
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [confirming, setConfirming] = useState(false);
+  const confirmTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const isHost = mySeat !== null && lobby.hostSeat !== null && mySeat === lobby.hostSeat;
+  const humanCount = lobby.players.filter((p) => p.name !== null && !p.isBot).length;
+  const openBotCount = botCount(humanCount);
+
+  useEffect(() => {
+    if (openBotCount === 0 && confirming) {
+      setConfirming(false);
+      if (confirmTimerRef.current !== null) {
+        clearTimeout(confirmTimerRef.current);
+        confirmTimerRef.current = null;
+      }
+    }
+  }, [openBotCount, confirming]);
+
+  useEffect(() => {
+    return () => {
+      if (confirmTimerRef.current !== null) {
+        clearTimeout(confirmTimerRef.current);
+      }
+    };
+  }, []);
+
+  const handleStartClick = () => {
+    if (humanCount < 1) return;
+    if (openBotCount === 0 || confirming) {
+      if (confirmTimerRef.current !== null) {
+        clearTimeout(confirmTimerRef.current);
+        confirmTimerRef.current = null;
+      }
+      setConfirming(false);
+      onStartGame();
+      return;
+    }
+
+    setConfirming(true);
+    confirmTimerRef.current = setTimeout(() => {
+      confirmTimerRef.current = null;
+      setConfirming(false);
+    }, 4000);
+  };
 
   const shareUrl = typeof window !== "undefined" ? `${window.location.origin}/?code=${lobby.code}` : "";
 
@@ -49,9 +93,6 @@ export function LobbyScreen({
     }
   };
 
-  const isHost = mySeat !== null && lobby.hostSeat !== null && mySeat === lobby.hostSeat;
-  const isFull = lobby.players.length === 4;
-
   const seats: Seat[] = [0, 1, 2, 3];
 
   return (
@@ -60,7 +101,7 @@ export function LobbyScreen({
         <div className="flex items-center justify-between pb-3 border-b border-[var(--edge)]">
           <div>
             <h2 className="text-xl font-bold text-[var(--tx)] tracking-tight">Game Lobby</h2>
-            <p className="text-xs text-[var(--mut)]">Waiting for 4 players to assemble</p>
+            <p className="text-xs text-[var(--mut)]">{humanCount} of 4 human seats filled</p>
           </div>
           <button
             type="button"
@@ -92,19 +133,20 @@ export function LobbyScreen({
         <div className="space-y-3">
           <div className="flex justify-between items-center text-xs font-semibold text-[var(--mut)] uppercase tracking-wider px-1">
             <span>Players</span>
-            <span>{lobby.players.length} / 4 Seated</span>
+            <span>{humanCount} / 4 Seated</span>
           </div>
 
           <div className="space-y-2">
             {seats.map((seatIndex) => {
-              const player = lobby.players.find((p) => p.seat === seatIndex);
+              const entry = lobby.players.find((p) => p.seat === seatIndex);
+              const player = entry && entry.name !== null ? entry : null;
               const isLocal = mySeat !== null && player?.seat === mySeat;
               const isSeatHost = lobby.hostSeat !== null && player?.seat === lobby.hostSeat;
 
               return (
                 <div
                   key={seatIndex}
-                  className={`flex items-center justify-between p-3 rounded-xl border text-sm  ${
+                  className={`flex items-center justify-between p-3 rounded-xl border text-sm ${
                     player
                       ? isLocal
                         ? "theme-turn text-[var(--tx)]"
@@ -113,11 +155,11 @@ export function LobbyScreen({
                   }`}
                 >
                   <div className="flex items-center space-x-2.5">
-                    <span className="w-5 text-xs  font-bold text-[var(--mut)]">
+                    <span className="w-5 text-xs font-bold text-[var(--mut)]">
                       #{seatIndex + 1}
                     </span>
-                    <span className="font-semibold truncate max-w-[150px] sm:max-w-[200px]">
-                      {player ? player.name : "Empty Seat"}
+                    <span className="font-semibold truncate max-w-[200px] sm:max-w-[240px]">
+                      {player ? player.name : "Open seat · a bot will play here"}
                     </span>
                     {isLocal && (
                       <span className="theme-badge uppercase">
@@ -154,21 +196,19 @@ export function LobbyScreen({
             <div className="space-y-2">
               <button
                 type="button"
-                onClick={onStartGame}
-                disabled={!isFull}
+                onClick={handleStartClick}
+                disabled={humanCount < 1}
                 className="theme-button-primary w-full min-h-[48px] disabled:opacity-50 py-3.5 px-4 text-base cursor-pointer disabled:cursor-not-allowed touch-manipulation flex items-center justify-center"
               >
-                {isFull ? "Start Game" : `Waiting for 4 players (${lobby.players.length}/4)`}
+                {startButtonLabel(humanCount, confirming)}
               </button>
-              {!isFull && (
-                <p className="text-xs text-center text-[var(--mut)]">
-                  All 4 seats must be occupied before starting
-                </p>
-              )}
+              <p className="text-xs text-center text-[var(--mut)]">
+                Friends can still join until you start.
+              </p>
             </div>
           ) : (
             <div className="theme-panel text-center p-3.5 rounded-xl text-xs text-[var(--mut)] font-medium">
-              Waiting for the host to start the game...
+              Waiting for the host to start…
             </div>
           )}
         </div>

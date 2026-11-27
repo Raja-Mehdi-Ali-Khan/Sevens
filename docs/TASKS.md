@@ -49,6 +49,9 @@ Do phases in order. Do not start a phase until the previous one is green (`npm r
 - [x] Table sections use a height-constrained flex layout with an internally scrollable suit board and CSS density steps
 - [x] Home screen supports remembered names, invite-first join flow, pure tested input helpers, and a collapsible rules summary
 
+## Phase 4e: Host start with bots
+- [x] Host can start with 1-4 humans; vacant seats filled by bots with random names, room locks on start, empty rooms dispose after 30s, lobby/table/summary/game-over show bot state
+
 ## Phase 5: Hardening and deploy  Agent: both
 - [ ] Rate limiting, input limits, error screens, reconnect UX
 - [ ] GitHub Actions: typecheck and test on push

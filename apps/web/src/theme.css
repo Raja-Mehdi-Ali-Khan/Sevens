@@ -248,6 +248,21 @@
   color: var(--rt);
 }
 
+.theme-bot-tag {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--edge);
+  border-radius: 4px;
+  color: var(--mut);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  line-height: 1;
+  padding: 2px 4px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
 .theme-mini-back {
   width: 13px;
   height: 20px;

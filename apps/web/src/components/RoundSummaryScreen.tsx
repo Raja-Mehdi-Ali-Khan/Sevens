@@ -49,6 +49,7 @@ export function RoundSummaryScreen({
             <tbody className="divide-y divide-[var(--edge)] bg-transparent">
               {seats.map((seat) => {
                 const name = getPlayerName(seat);
+                const isBot = lobby?.players.find((p) => p.seat === seat)?.isBot === true;
                 const isWinner = seat === winnerSeat;
                 const isLocal = seat === view.seat;
                 const roundPenalty = view.roundScores?.[seat] ?? 0;
@@ -61,6 +62,11 @@ export function RoundSummaryScreen({
                   >
                     <td className="px-3 py-2 flex items-center gap-1.5">
                       <span className="truncate max-w-[100px] text-[var(--tx)]">{name}</span>
+                      {isBot && (
+                        <span className="theme-bot-tag">
+                          BOT
+                        </span>
+                      )}
                       {isLocal && (
                         <span className="theme-badge">
                           You

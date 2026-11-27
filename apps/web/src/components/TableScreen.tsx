@@ -54,9 +54,8 @@ export function TableScreen({
     return lobby?.players.find((p) => p.seat === seat)?.name ?? `Seat ${seat + 1}`;
   };
 
-  const isPlayerDisconnected = (seat: Seat): boolean => {
-    const player = lobby?.players.find((p) => p.seat === seat);
-    return player !== undefined && !player.connected;
+  const isPlayerBot = (seat: Seat): boolean => {
+    return lobby?.players.find((p) => p.seat === seat)?.isBot === true;
   };
 
   const currentSeatName = getPlayerName(view.currentSeat);
@@ -189,7 +188,10 @@ export function TableScreen({
                     isLocal ? "theme-turn font-bold text-[var(--tx)]" : "theme-panel-soft text-[var(--tx)]"
                   }`}
                 >
-                  <span className="truncate max-w-[90px]">{name}</span>
+                  <span className="flex items-center gap-1 min-w-0">
+                    <span className="truncate max-w-[90px]">{name}</span>
+                    {isPlayerBot(seat) && <span className="theme-bot-tag">BOT</span>}
+                  </span>
                   <span className="">{total} pts</span>
                 </div>
               );
@@ -208,7 +210,7 @@ export function TableScreen({
               cardCount={view.handCounts[seat] ?? 0}
               playableCount={view.playableCounts[seat] ?? null}
               isCurrentTurn={view.currentSeat === seat}
-              isDisconnected={isPlayerDisconnected(seat)}
+              isBot={isPlayerBot(seat)}
             />
           );
         })}

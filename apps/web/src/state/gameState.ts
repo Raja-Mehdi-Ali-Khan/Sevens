@@ -71,11 +71,14 @@ export function appReducer(state: AppState, action: AppAction): AppState {
       if (state.view !== null) {
         resolvedSeat = state.view.seat;
       } else if (resolvedSeat === null) {
-        if (action.lobby.players.length === 1) {
-          resolvedSeat = action.lobby.players[0]!.seat;
+        const seatedHumans = action.lobby.players.filter(
+          (p) => p.name !== null && !p.isBot,
+        );
+        if (seatedHumans.length === 1) {
+          resolvedSeat = seatedHumans[0]!.seat;
         } else if (state.localName.trim().length > 0) {
-          const match = action.lobby.players.find(
-            (p) => p.name.trim().toLowerCase() === state.localName.trim().toLowerCase(),
+          const match = seatedHumans.find(
+            (p) => p.name !== null && p.name.trim().toLowerCase() === state.localName.trim().toLowerCase(),
           );
           if (match) resolvedSeat = match.seat;
         }

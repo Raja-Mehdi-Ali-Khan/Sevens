@@ -5,7 +5,7 @@ interface PlayerSeatProps {
   cardCount: number;
   playableCount: number | null;
   isCurrentTurn: boolean;
-  isDisconnected: boolean;
+  isBot: boolean;
 }
 
 export function PlayerSeat({
@@ -13,7 +13,7 @@ export function PlayerSeat({
   cardCount,
   playableCount,
   isCurrentTurn,
-  isDisconnected,
+  isBot,
 }: PlayerSeatProps) {
   // Keep the opponent stack small while retaining a visible card-count cue.
   const stackCount = Math.min(Math.max(cardCount, 0), 5);
@@ -36,8 +36,8 @@ export function PlayerSeat({
               {hintLabel(playableCount)}
             </span>
           )}
-          {isDisconnected && (
-            <span className="theme-seat-bot">Bot</span>
+          {isBot && (
+            <span className="theme-bot-tag">BOT</span>
           )}
         </span>
       </div>

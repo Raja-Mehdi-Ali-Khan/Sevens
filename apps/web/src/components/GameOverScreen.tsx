@@ -48,6 +48,7 @@ export function GameOverScreen({
           <div className="divide-y divide-[var(--edge)] border border-[var(--edge)] rounded-xl overflow-hidden">
             {rankedSeats.map((seat, index) => {
               const name = getPlayerName(seat);
+              const isBot = lobby?.players.find((p) => p.seat === seat)?.isBot === true;
               const isWinner = winners.includes(seat);
               const isLocal = seat === view.seat;
               const total = view.totals[seat] ?? 0;
@@ -72,6 +73,11 @@ export function GameOverScreen({
                       #{index + 1}
                     </span>
                     <span className="truncate max-w-[120px]">{name}</span>
+                    {isBot && (
+                      <span className="theme-bot-tag">
+                        BOT
+                      </span>
+                    )}
                     {isLocal && (
                       <span className="theme-badge">
                         You

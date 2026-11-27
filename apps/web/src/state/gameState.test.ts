@@ -17,7 +17,12 @@ describe("gameState reducer", () => {
     const lobby: LobbyMessage = {
       code: "ABCDE",
       hostSeat: 0,
-      players: [{ seat: 0, name: "Alice", connected: true }],
+      players: [
+        { seat: 0, name: "Alice", connected: true, isBot: false },
+        { seat: 1, name: null, connected: false, isBot: false },
+        { seat: 2, name: null, connected: false, isBot: false },
+        { seat: 3, name: null, connected: false, isBot: false },
+      ],
     };
     state = appReducer(state, { type: "SET_LOBBY", lobby });
     expect(getScreenName(state)).toBe("lobby");
@@ -64,8 +69,10 @@ describe("gameState reducer", () => {
       code: "ABCDE",
       hostSeat: 0,
       players: [
-        { seat: 0, name: "Alice", connected: true },
-        { seat: 1, name: "Bob", connected: true },
+        { seat: 0, name: "Alice", connected: true, isBot: false },
+        { seat: 1, name: "Bob", connected: true, isBot: false },
+        { seat: 2, name: "Kabir", connected: false, isBot: true },
+        { seat: 3, name: "Maya", connected: false, isBot: true },
       ],
     };
 
@@ -102,5 +109,35 @@ describe("gameState reducer", () => {
     };
     const t4 = createToastFromEvent(winEvent, lobby);
     expect(t4?.message).toBe("Alice won the round!");
+  });
+
+  it("resolves mySeat from lobby with vacant and bot seats", () => {
+    let state: AppState = { ...initialAppState, localName: "Bob" };
+    const lobbyWithMultipleHumans: LobbyMessage = {
+      code: "ABCDE",
+      hostSeat: 0,
+      players: [
+        { seat: 0, name: "Alice", connected: true, isBot: false },
+        { seat: 1, name: "Bob", connected: true, isBot: false },
+        { seat: 2, name: null, connected: false, isBot: false },
+        { seat: 3, name: null, connected: false, isBot: false },
+      ],
+    };
+    state = appReducer(state, { type: "SET_LOBBY", lobby: lobbyWithMultipleHumans });
+    expect(state.mySeat).toBe(1);
+
+    const startedLobby: LobbyMessage = {
+      code: "ABCDE",
+      hostSeat: 0,
+      players: [
+        { seat: 0, name: "Alice", connected: true, isBot: false },
+        { seat: 1, name: "Bob", connected: true, isBot: false },
+        { seat: 2, name: "Kabir", connected: false, isBot: true },
+        { seat: 3, name: "Maya", connected: false, isBot: true },
+      ],
+    };
+    state = appReducer(state, { type: "SET_LOBBY", lobby: startedLobby });
+    expect(state.lobby?.players.filter((p) => p.isBot)).toHaveLength(2);
+    expect(state.mySeat).toBe(1);
   });
 });

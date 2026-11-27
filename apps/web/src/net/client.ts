@@ -4,8 +4,9 @@ import type { CardId, GameEvent, PlayerView, Seat } from "@cardgame/engine";
 // Message typing matching apps/server/src/messages.ts without runtime zod dependency
 export interface LobbyPlayer {
   seat: Seat;
-  name: string;
+  name: string | null;
   connected: boolean;
+  isBot: boolean;
 }
 
 export interface LobbyMessage {
@@ -153,7 +154,10 @@ export class NetworkClient {
       return room;
     } catch (err) {
       this.callbacks?.onStatusChange("disconnected");
-      const message = err instanceof Error ? err.message : "Failed to join room";
+      let message = err instanceof Error ? err.message : "Failed to join room";
+      if (/is locked/i.test(message)) {
+        message = "This game has already started.";
+      }
       throw new Error(message);
     }
   }
