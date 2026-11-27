@@ -65,7 +65,7 @@ function FlightClone({
 }) {
   const [showFace, setShowFace] = useState(!flight.isOpponent);
   const finishedRef = useRef(false);
-  const durationSec = flight.isOpponent ? 0.38 : 0.32;
+  const durationSec = flight.isOpponent ? 0.45 : 0.38;
 
   useEffect(() => {
     if (!flight.isOpponent) return;
@@ -107,6 +107,8 @@ function FlightClone({
         width: flight.width,
         height: flight.height,
         transformOrigin: "center center",
+        boxShadow: "0 10px 26px rgb(0 0 0 / 55%), 0 0 0 2px var(--acc)",
+        borderRadius: 8,
       }}
     >
       <div className="relative w-full h-full">
@@ -181,6 +183,13 @@ export function AnimationLayer({
         continue;
       }
 
+      // Hide the destination tile immediately so it never flashes before the flight starts
+      addInFlightCard(id);
+      const watchdog = window.setTimeout(() => {
+        removeInFlightCard(id);
+      }, TILE_HIDE_WATCHDOG_MS);
+      watchdogsRef.current.set(play.id, watchdog);
+
       const startedAt = performance.now();
       let resolvedFromRect: RectLike | null = null;
       const tryLaunch = () => {
@@ -201,12 +210,6 @@ export function AnimationLayer({
             height: cloneHeight,
           };
           const geometry = flightGeometry(adjustedFrom, toRect);
-          addInFlightCard(id);
-
-          const watchdog = window.setTimeout(() => {
-            removeInFlightCard(id);
-          }, TILE_HIDE_WATCHDOG_MS);
-          watchdogsRef.current.set(play.id, watchdog);
 
           const nextFlight: ActiveFlight = {
             id: play.id,
@@ -240,6 +243,12 @@ export function AnimationLayer({
         if (performance.now() - startedAt < TARGET_SEARCH_TIMEOUT_MS) {
           requestAnimationFrame(tryLaunch);
         } else {
+          const w = watchdogsRef.current.get(play.id);
+          if (w !== undefined) {
+            window.clearTimeout(w);
+            watchdogsRef.current.delete(play.id);
+          }
+          removeInFlightCard(id);
           onConsumePlay(play.id);
         }
       };
