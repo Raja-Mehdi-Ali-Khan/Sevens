@@ -140,4 +140,39 @@ describe("gameState reducer", () => {
     expect(state.lobby?.players.filter((p) => p.isBot)).toHaveLength(2);
     expect(state.mySeat).toBe(1);
   });
+
+  it("enqueues and consumes plays and passes with monotonic ids", () => {
+    let state: AppState = initialAppState;
+
+    state = appReducer(state, {
+      type: "ENQUEUE_PLAY",
+      seat: 1,
+      card: { suit: "H", rank: 7 },
+      auto: true,
+    });
+    state = appReducer(state, {
+      type: "ENQUEUE_PLAY",
+      seat: 0,
+      card: { suit: "H", rank: 8 },
+      auto: false,
+    });
+
+    expect(state.plays).toHaveLength(2);
+    expect(state.plays[0]).toEqual({
+      id: 1,
+      seat: 1,
+      card: { suit: "H", rank: 7 },
+      auto: true,
+    });
+    expect(state.plays[1]?.id).toBe(2);
+
+    state = appReducer(state, { type: "CONSUME_PLAY", id: 1 });
+    expect(state.plays).toHaveLength(1);
+    expect(state.plays[0]?.id).toBe(2);
+
+    state = appReducer(state, { type: "ENQUEUE_PASS", seat: 2 });
+    expect(state.passes).toEqual([{ id: 1, seat: 2 }]);
+    state = appReducer(state, { type: "CONSUME_PASS", id: 1 });
+    expect(state.passes).toEqual([]);
+  });
 });

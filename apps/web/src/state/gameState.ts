@@ -1,4 +1,4 @@
-import type { CardId, GameEvent, PlayerView, Seat } from "@cardgame/engine";
+import type { Card, CardId, GameEvent, PlayerView, Seat } from "@cardgame/engine";
 import { formatCard } from "../lib/cards";
 import type { ConnectionStatus, LobbyMessage } from "../net/client";
 
@@ -6,6 +6,18 @@ export interface Toast {
   id: string;
   message: string;
   createdAt: number;
+}
+
+export interface PlayFlightItem {
+  id: number;
+  seat: Seat;
+  card: Card;
+  auto: boolean;
+}
+
+export interface PassPulseItem {
+  id: number;
+  seat: Seat;
 }
 
 export type ScreenName = "home" | "lobby" | "table" | "round_over" | "game_over";
@@ -20,6 +32,10 @@ export interface AppState {
   view: PlayerView | null;
   toasts: Toast[];
   recentCardId: CardId | null;
+  plays: PlayFlightItem[];
+  nextPlayId: number;
+  passes: PassPulseItem[];
+  nextPassId: number;
 }
 
 export const initialAppState: AppState = {
@@ -32,6 +48,10 @@ export const initialAppState: AppState = {
   view: null,
   toasts: [],
   recentCardId: null,
+  plays: [],
+  nextPlayId: 1,
+  passes: [],
+  nextPassId: 1,
 };
 
 export type AppAction =
@@ -43,6 +63,10 @@ export type AppAction =
   | { type: "ADD_TOAST"; toast: Toast }
   | { type: "REMOVE_TOAST"; id: string }
   | { type: "SET_RECENT_CARD"; cardId: CardId | null }
+  | { type: "ENQUEUE_PLAY"; seat: Seat; card: Card; auto: boolean }
+  | { type: "CONSUME_PLAY"; id: number }
+  | { type: "ENQUEUE_PASS"; seat: Seat }
+  | { type: "CONSUME_PASS"; id: number }
   | { type: "RESET" };
 
 export function appReducer(state: AppState, action: AppAction): AppState {
@@ -96,6 +120,8 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         ...state,
         view: action.view,
         mySeat: action.view.seat,
+        plays: action.view.phase === "in_round" ? state.plays : [],
+        passes: action.view.phase === "in_round" ? state.passes : [],
       };
 
     case "ADD_TOAST":
@@ -114,6 +140,35 @@ export function appReducer(state: AppState, action: AppAction): AppState {
       return {
         ...state,
         recentCardId: action.cardId,
+      };
+
+    case "ENQUEUE_PLAY":
+      return {
+        ...state,
+        plays: [
+          ...state.plays,
+          { id: state.nextPlayId, seat: action.seat, card: action.card, auto: action.auto },
+        ],
+        nextPlayId: state.nextPlayId + 1,
+      };
+
+    case "CONSUME_PLAY":
+      return {
+        ...state,
+        plays: state.plays.filter((p) => p.id !== action.id),
+      };
+
+    case "ENQUEUE_PASS":
+      return {
+        ...state,
+        passes: [...state.passes, { id: state.nextPassId, seat: action.seat }],
+        nextPassId: state.nextPassId + 1,
+      };
+
+    case "CONSUME_PASS":
+      return {
+        ...state,
+        passes: state.passes.filter((p) => p.id !== action.id),
       };
 
     case "RESET":
