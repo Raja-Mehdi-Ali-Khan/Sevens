@@ -236,34 +236,34 @@ export function TableScreen({
         )}
       </header>
 
-      {/* (b) Circular Opponents + Oval Table */}
+      {/* (b) Large Oval Table with Players Seated On Boundary */}
       <main className="table-board-region relative">
-        <div className="w-full flex-1 min-h-0 flex flex-col justify-center gap-1.5 sm:gap-2.5">
-          {/* Top seat centered above the oval */}
-          {opponents.find((o) => o.position === "top") && (() => {
-            const seat = opponents.find((o) => o.position === "top")!.seat;
-            return (
-              <div className="flex justify-center">
-                <PlayerSeat
-                  seat={seat}
-                  name={getPlayerName(seat)}
-                  cardCount={view.handCounts[seat] ?? 0}
-                  playableCount={view.playableCounts[seat] ?? null}
-                  isCurrentTurn={view.currentSeat === seat}
-                  isBot={isPlayerBot(seat)}
-                  passNonce={passNonces[seat] ?? 0}
-                  dealVersion={dealVersionRef.current}
-                />
-              </div>
-            );
-          })()}
+        <div className="w-full flex-1 min-h-0 flex items-center justify-center py-6 px-2 sm:py-7 sm:px-10">
+          <div className="theme-oval-table relative w-full max-w-[460px] sm:max-w-[580px] mx-auto">
+            {/* Top seat centered on top oval boundary */}
+            {opponents.find((o) => o.position === "top") && (() => {
+              const seat = opponents.find((o) => o.position === "top")!.seat;
+              return (
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20">
+                  <PlayerSeat
+                    seat={seat}
+                    name={getPlayerName(seat)}
+                    cardCount={view.handCounts[seat] ?? 0}
+                    playableCount={view.playableCounts[seat] ?? null}
+                    isCurrentTurn={view.currentSeat === seat}
+                    isBot={isPlayerBot(seat)}
+                    passNonce={passNonces[seat] ?? 0}
+                    dealVersion={dealVersionRef.current}
+                  />
+                </div>
+              );
+            })()}
 
-          {/* Middle row: Left seat, Oval table, Right seat */}
-          <div className="w-full flex items-center justify-center gap-1.5 sm:gap-3 min-w-0">
+            {/* Left seat centered on left oval boundary */}
             {opponents.find((o) => o.position === "left") && (() => {
               const seat = opponents.find((o) => o.position === "left")!.seat;
               return (
-                <div className="flex shrink-0">
+                <div className="absolute left-0 top-1/2 -translate-x-1 sm:-translate-x-1/2 -translate-y-1/2 z-20">
                   <PlayerSeat
                     seat={seat}
                     name={getPlayerName(seat)}
@@ -278,14 +278,11 @@ export function TableScreen({
               );
             })()}
 
-            <div className="flex-1 min-w-0">
-              <SuitTable table={view.table} recentCardId={recentCardId} />
-            </div>
-
+            {/* Right seat centered on right oval boundary */}
             {opponents.find((o) => o.position === "right") && (() => {
               const seat = opponents.find((o) => o.position === "right")!.seat;
               return (
-                <div className="flex shrink-0">
+                <div className="absolute right-0 top-1/2 translate-x-1 sm:translate-x-1/2 -translate-y-1/2 z-20">
                   <PlayerSeat
                     seat={seat}
                     name={getPlayerName(seat)}
@@ -299,6 +296,8 @@ export function TableScreen({
                 </div>
               );
             })()}
+
+            <SuitTable table={view.table} recentCardId={recentCardId} />
           </div>
         </div>
       </main>

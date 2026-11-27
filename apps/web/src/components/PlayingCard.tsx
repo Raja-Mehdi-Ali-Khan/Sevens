@@ -76,6 +76,7 @@ export function PlayingCard({
             disabled={isCardDimmed}
             aria-label={alt}
             style={style}
+            data-tile={dataTile}
             className={`${baseClasses} p-0 border-0 bg-transparent`}
           >
             {tileContent}
@@ -83,7 +84,7 @@ export function PlayingCard({
         );
       }
       return (
-        <div className={baseClasses} aria-label={alt} style={style}>
+        <div className={baseClasses} aria-label={alt} style={style} data-tile={dataTile}>
           {tileContent}
         </div>
       );
@@ -108,6 +109,7 @@ export function PlayingCard({
           disabled={isCardDimmed}
           aria-label={alt}
           style={style}
+          data-tile={dataTile}
           className={`${baseClasses} p-0 border-0 bg-transparent`}
         >
           {tileContent}
@@ -115,7 +117,7 @@ export function PlayingCard({
       );
     }
     return (
-      <div className={baseClasses} aria-label={alt} style={style}>
+      <div className={baseClasses} aria-label={alt} style={style} data-tile={dataTile}>
         {tileContent}
       </div>
     );

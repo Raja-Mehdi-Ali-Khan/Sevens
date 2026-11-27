@@ -34,8 +34,6 @@ export function PlayerSeat({
     }
   }, [passNonce, shouldReduceMotion]);
 
-  const initial = name.trim().charAt(0).toUpperCase() || "?";
-
   return (
     <m.div
       data-seat-chip={seat}
@@ -46,42 +44,37 @@ export function PlayerSeat({
           ? { x: [0, -4, 4, -3, 3, 0], transition: { duration: 0.3 } }
           : undefined
       }
-      className={`theme-seat w-[58px] sm:w-[92px] min-w-0 flex flex-col items-center text-center select-none px-1.5 py-1 sm:px-2 sm:py-1.5 ${
+      className={`theme-seat flex flex-col items-center text-center select-none px-1.5 py-1 sm:px-2.5 sm:py-1.5 min-w-[60px] max-w-[78px] sm:min-w-[84px] sm:max-w-[116px] shadow-md ${
         isCurrentTurn ? "theme-turn" : ""
       }`}
     >
-      <div className="flex items-center justify-center gap-1.5 w-full min-w-0">
-        <m.div
-          key={dealVersion > 0 && !shouldReduceMotion ? `deal-${dealVersion}` : "avatar"}
-          initial={dealVersion > 0 && !shouldReduceMotion ? { opacity: 0 } : false}
-          animate={{ opacity: 1, transition: { duration: shouldReduceMotion ? 0.12 : 0.25 } }}
-          className={`w-6 h-6 sm:w-8 sm:h-8 shrink-0 rounded-full border bg-[var(--back)] flex items-center justify-center font-bold text-xs sm:text-sm text-[var(--tx)] ${
-            isCurrentTurn
-              ? "border-[var(--acc)] text-[var(--acc)]"
-              : "border-[var(--edge)]"
-          }`}
-        >
-          {initial}
-        </m.div>
-        <span
-          className="truncate text-xs font-bold leading-tight text-[var(--tx)]"
-          title={name}
-        >
-          {name}
-        </span>
-      </div>
-
-      <div className="mt-1 flex flex-wrap items-center justify-center gap-1">
-        <span className="text-[11px] font-medium leading-tight text-[var(--mut)] whitespace-nowrap">
-          {cardCount} {cardCount === 1 ? "card" : "cards"}
-        </span>
-        {playableCount !== null && (
-          <span className="theme-seat-hint" aria-label={`${playableCount} playable cards`}>
-            {hintLabel(playableCount)}
+      <m.div
+        key={dealVersion > 0 && !shouldReduceMotion ? `deal-${dealVersion}` : "seat-info"}
+        initial={dealVersion > 0 && !shouldReduceMotion ? { opacity: 0 } : false}
+        animate={{ opacity: 1, transition: { duration: shouldReduceMotion ? 0.12 : 0.25 } }}
+        className="w-full min-w-0 flex flex-col items-center"
+      >
+        <div className="flex items-center justify-center gap-1 w-full min-w-0">
+          <span
+            className="truncate text-[11px] sm:text-xs font-bold leading-tight text-[var(--tx)]"
+            title={name}
+          >
+            {name}
           </span>
-        )}
-        {isBot && <span className="theme-bot-tag">BOT</span>}
-      </div>
+          {isBot && <span className="theme-bot-tag shrink-0">BOT</span>}
+        </div>
+
+        <div className="mt-0.5 flex flex-wrap items-center justify-center gap-1">
+          <span className="text-[10px] font-medium leading-tight text-[var(--mut)] whitespace-nowrap">
+            {cardCount} {cardCount === 1 ? "card" : "cards"}
+          </span>
+          {playableCount !== null && (
+            <span className="theme-seat-hint" aria-label={`${playableCount} playable cards`}>
+              {hintLabel(playableCount)}
+            </span>
+          )}
+        </div>
+      </m.div>
     </m.div>
   );
 }
