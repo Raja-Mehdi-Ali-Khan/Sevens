@@ -114,13 +114,23 @@ function FlightClone({
           className="absolute inset-0 transition-opacity duration-75"
           style={{ opacity: showFace ? 0 : 1 }}
         >
-          <PlayingCard cardId="back" size="md" className="w-full h-full" />
+          <PlayingCard
+            cardId="back"
+            size="md"
+            className="w-full h-full"
+            style={{ width: "100%", height: "100%", minWidth: 0 }}
+          />
         </div>
         <div
           className="absolute inset-0 transition-opacity duration-75"
           style={{ opacity: showFace ? 1 : 0 }}
         >
-          <PlayingCard cardId={flight.cardId} size="md" className="w-full h-full" />
+          <PlayingCard
+            cardId={flight.cardId}
+            size="md"
+            className="w-full h-full"
+            style={{ width: "100%", height: "100%", minWidth: 0 }}
+          />
         </div>
       </div>
     </m.div>
@@ -171,18 +181,17 @@ export function AnimationLayer({
         continue;
       }
 
-      const fromRect = resolveSourceRect(play, id, mySeat, pendingTapRef);
-      if (!fromRect) {
-        onConsumePlay(play.id);
-        continue;
-      }
-
       const startedAt = performance.now();
+      let resolvedFromRect: RectLike | null = null;
       const tryLaunch = () => {
+        if (!resolvedFromRect) {
+          resolvedFromRect = resolveSourceRect(play, id, mySeat, pendingTapRef);
+        }
+        const fromRect = resolvedFromRect;
         const tileEl = document.querySelector(`[data-tile="${id}"]`);
         const toRect = tileEl ? toRectLike(tileEl.getBoundingClientRect()) : null;
 
-        if (toRect && toRect.width > 0 && toRect.height > 0) {
+        if (fromRect && toRect && toRect.width > 0 && toRect.height > 0) {
           const cloneWidth = fromRect.width > 0 ? Math.min(fromRect.width, 54) : 48;
           const cloneHeight = fromRect.height > 0 ? Math.min(fromRect.height, 64) : 58;
           const adjustedFrom: RectLike = {
